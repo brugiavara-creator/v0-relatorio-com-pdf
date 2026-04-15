@@ -309,6 +309,10 @@ export function generatePDF(data: ReportData) {
           <div class="info-box highlight">
             <h4>Informações do Sinistro</h4>
             <div class="info-item">
+              <span class="info-label">Seguradora:</span>
+              <span class="info-value" style="font-weight: 600;">${data.header.seguradora || "-"}</span>
+            </div>
+            <div class="info-item">
               <span class="info-label">Sinistro:</span>
               <span class="info-value">${data.header.sinistro || "-"}</span>
             </div>

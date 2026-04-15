@@ -1,4 +1,5 @@
 export interface ReportHeader {
+  seguradora: string
   sinistro: string
   tipoCliente: string
   regulador: string
@@ -17,6 +18,12 @@ export interface ReportHeader {
   agenteCausa: string
   motivo: string
 }
+
+export const SEGURADORAS = [
+  "ALLIANZ SEGUROS",
+  "MAPFRE SEGUROS", 
+  "PIER SEGUROS",
+] as const
 
 export const TIPOS_CLIENTE = ["Segurado", "Terceiro"] as const
 
@@ -109,6 +116,7 @@ export const MOTIVOS = [
 
 export const emptyReportData: ReportData = {
   header: {
+    seguradora: "",
     sinistro: "",
     tipoCliente: "",
     regulador: "",

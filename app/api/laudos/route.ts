@@ -42,6 +42,7 @@ export async function POST(request: Request) {
     const { data: laudo, error: laudoError } = await supabase
       .from("laudos")
       .insert({
+        seguradora: reportData.header.seguradora || null,
         sinistro: reportData.header.sinistro || null,
         tipo_cliente: reportData.header.tipoCliente || null,
         regulador: reportData.header.regulador || null,
