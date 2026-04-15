@@ -55,7 +55,7 @@ export function SummarySection({ data, onOrcamentoChange, onFranquiaChange }: Su
       </CardHeader>
       <CardContent>
         {/* Campos de Orçamento e Franquia */}
-        <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-6 grid gap-4 md:grid-cols-2">
           <div className="rounded-lg border bg-blue-50 p-4 dark:bg-blue-950/30">
             <Label htmlFor="valorOrcamento" className="text-sm font-medium text-blue-700 dark:text-blue-400">
               Valor Inicial Orçamento / Total Geral (R$)
@@ -90,14 +90,6 @@ export function SummarySection({ data, onOrcamentoChange, onFranquiaChange }: Su
                 className="text-right font-medium"
                 placeholder="0,00"
               />
-            </div>
-          </div>
-          <div className="rounded-lg border bg-slate-100 p-4 dark:bg-slate-800/50 md:col-span-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Valor Após Franquia
-            </span>
-            <div className="mt-2 text-2xl font-bold text-slate-700 dark:text-slate-300">
-              {formatCurrency(valorAposFranquia)}
             </div>
           </div>
         </div>
@@ -190,10 +182,6 @@ export function SummarySection({ data, onOrcamentoChange, onFranquiaChange }: Su
               </h4>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Valor Após Franquia</span>
-                <span className="font-medium">{formatCurrency(valorAposFranquia)}</span>
-              </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">(-) Total Deduções</span>
                 <span className="font-medium text-red-600">-{formatCurrency(totalDeducoes)}</span>
