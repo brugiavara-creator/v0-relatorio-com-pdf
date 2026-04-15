@@ -48,7 +48,44 @@ export interface ReportData {
   pecasGlosadas: PecaGlosada[]
   maoDeObra: MaoDeObraGlosa
   servicosTerceiros: ServicosTerceiros
+  observacao: string
 }
+
+export const AGENTES_CAUSA = [
+  "Perito",
+  "Oficina",
+  "Sistema",
+  "Negociação OFR",
+  "Analista",
+  "Oficina e Perito",
+  "Fornecimento",
+  "Imagem",
+  "Perito e Negociação OFR",
+  "Fastrack",
+] as const
+
+export const MOTIVOS = [
+  "DIVERGÊNCIA DE PREÇO PEÇAS",
+  "FRANQUIA",
+  "MATERIAL DE PINTURA",
+  "MO INCORRETA",
+  "PEÇA AFT",
+  "PEÇA EM DUPLICIDADE",
+  "PEÇA INCORRETA",
+  "PEÇA RECUPERADA/PASSIVEL REPARAÇÃO",
+  "PEÇA SEM AVARIAS",
+  "APLICAÇÃO INADEQUADO DE APOLICE",
+  "INVERSÃO DE CULPA",
+  "RECUSA TECNICA",
+  "AVARIAS SEM NEXO",
+  "NEXO CAUSAL",
+  "ERRO CADASTRAL",
+  "DIVERGÊNCIA DE DESCONTO",
+  "SERVIÇO NÃO REALIZADO",
+  "NEGOCIAÇÃO OFR",
+  "RESSARCIMENTO",
+  "PT MAL INFORMADA",
+] as const
 
 export const emptyReportData: ReportData = {
   header: {
@@ -83,4 +120,5 @@ export const emptyReportData: ReportData = {
     valorizacaoTotal: 0,
     deducaoTotal: 0,
   },
+  observacao: "",
 }

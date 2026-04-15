@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button"
 import { HeaderSection } from "@/components/report/header-section"
 import { PecasSection } from "@/components/report/pecas-section"
 import { MaoDeObraSection } from "@/components/report/mao-de-obra-section"
+import { ObservacaoSection } from "@/components/report/observacao-section"
 import { SummarySection } from "@/components/report/summary-section"
 import { emptyReportData, type ReportData } from "@/lib/report-data"
 import { generatePDF } from "@/lib/pdf-generator"
-import { FileDown, FileText, RotateCcw } from "lucide-react"
+import { FileDown, RotateCcw } from "lucide-react"
 
 export default function ReportPage() {
   const [reportData, setReportData] = useState<ReportData>(emptyReportData)
@@ -28,13 +29,15 @@ export default function ReportPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <FileText className="h-5 w-5 text-primary-foreground" />
-            </div>
+          <div className="flex items-center gap-4">
+            <img 
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" 
+              alt="ControlExpert"
+              className="h-8 w-auto"
+            />
+            <div className="h-6 w-px bg-border" />
             <div>
-              <h1 className="text-lg font-semibold">ExpertiseCheck</h1>
-              <p className="text-xs text-muted-foreground">Laudo de Reinspeção</p>
+              <h1 className="text-lg font-semibold text-primary">Laudo de Reinspeção</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -42,7 +45,7 @@ export default function ReportPage() {
               <RotateCcw className="mr-2 h-4 w-4" />
               Limpar
             </Button>
-            <Button size="sm" onClick={handleGeneratePDF}>
+            <Button size="sm" onClick={handleGeneratePDF} className="bg-primary hover:bg-primary/90">
               <FileDown className="mr-2 h-4 w-4" />
               Gerar PDF
             </Button>
@@ -55,7 +58,7 @@ export default function ReportPage() {
         <div className="space-y-8">
           {/* Informações Gerais */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold">Informações Gerais</h2>
+            <h2 className="mb-4 text-xl font-semibold text-foreground">Informações Gerais</h2>
             <HeaderSection
               data={reportData.header}
               onChange={(header) => setReportData({ ...reportData, header })}
@@ -64,7 +67,7 @@ export default function ReportPage() {
 
           {/* Glosas de Peças */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold">Itens Glosados</h2>
+            <h2 className="mb-4 text-xl font-semibold text-foreground">Itens Glosados</h2>
             <PecasSection
               data={reportData.pecasGlosadas}
               onChange={(pecasGlosadas) => setReportData({ ...reportData, pecasGlosadas })}
@@ -73,7 +76,7 @@ export default function ReportPage() {
 
           {/* Mão de Obra */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold">Mão de Obra</h2>
+            <h2 className="mb-4 text-xl font-semibold text-foreground">Mão de Obra</h2>
             <MaoDeObraSection
               data={reportData.maoDeObra}
               servicosTerceiros={reportData.servicosTerceiros}
@@ -84,18 +87,27 @@ export default function ReportPage() {
             />
           </section>
 
+          {/* Observações */}
+          <section>
+            <h2 className="mb-4 text-xl font-semibold text-foreground">Observações</h2>
+            <ObservacaoSection
+              value={reportData.observacao}
+              onChange={(observacao) => setReportData({ ...reportData, observacao })}
+            />
+          </section>
+
           {/* Resumo */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold">Resumo</h2>
+            <h2 className="mb-4 text-xl font-semibold text-foreground">Resumo</h2>
             <SummarySection data={reportData} />
           </section>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6">
+      <footer className="border-t py-6 bg-muted/30">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>ExpertiseCheck - Sistema de Auditoria de Sinistros</p>
+          <p>ControlExpert - Sistema de Auditoria de Sinistros</p>
         </div>
       </footer>
     </div>

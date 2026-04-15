@@ -13,6 +13,12 @@ export function generatePDF(data: ReportData) {
     return new Date(date).toLocaleDateString("pt-BR")
   }
 
+  // Cores da marca ControlExpert
+  const brandBlue = "#0066a1"
+  const brandGreen = "#5a9a7a"
+  const lightBlue = "#e8f4fc"
+  const lightGreen = "#e8f5ef"
+
   // Calcular totais
   const totalPecasLiquido = data.pecasGlosadas.reduce((acc, peca) => acc + peca.valorLiquidoTotal, 0)
   const totalPecasNegociado = data.pecasGlosadas.reduce(
@@ -45,65 +51,100 @@ export function generatePDF(data: ReportData) {
           line-height: 1.4;
           color: #1a1a1a;
           padding: 20px;
+          background: #fff;
         }
         .header {
-          text-align: center;
-          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 25px;
           padding-bottom: 15px;
-          border-bottom: 2px solid #2563eb;
+          border-bottom: 3px solid ${brandBlue};
+        }
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+        .header img {
+          height: 45px;
+          width: auto;
+        }
+        .header-title {
+          border-left: 2px solid ${brandGreen};
+          padding-left: 15px;
         }
         .header h1 {
-          font-size: 20px;
-          color: #2563eb;
-          margin-bottom: 5px;
+          font-size: 18px;
+          color: ${brandBlue};
+          margin-bottom: 3px;
+          font-weight: 600;
         }
         .header p {
           color: #666;
-          font-size: 12px;
+          font-size: 11px;
         }
         .section {
           margin-bottom: 20px;
         }
         .section-title {
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 600;
           color: #fff;
-          background: #2563eb;
+          background: ${brandBlue};
           padding: 8px 12px;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
           border-radius: 4px;
+        }
+        .section-title.green {
+          background: ${brandGreen};
         }
         .info-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 15px;
+          gap: 12px;
         }
         .info-box {
-          border: 1px solid #e5e7eb;
+          border: 1px solid #e0e0e0;
           border-radius: 6px;
           padding: 12px;
+          background: #fafafa;
+        }
+        .info-box.highlight {
+          background: ${lightBlue};
+          border-color: ${brandBlue}40;
+        }
+        .info-box.warning {
+          background: #fff8f0;
+          border-color: #f59e0b40;
         }
         .info-box h4 {
-          font-size: 11px;
-          color: #6b7280;
-          margin-bottom: 8px;
+          font-size: 10px;
+          color: ${brandBlue};
+          margin-bottom: 10px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+          font-weight: 600;
+          border-bottom: 1px solid ${brandBlue}30;
+          padding-bottom: 5px;
         }
         .info-item {
           display: flex;
           justify-content: space-between;
           padding: 4px 0;
-          border-bottom: 1px dotted #e5e7eb;
+          border-bottom: 1px dotted #e0e0e0;
         }
         .info-item:last-child {
           border-bottom: none;
         }
         .info-label {
-          color: #6b7280;
+          color: #666;
+          font-size: 10px;
         }
         .info-value {
           font-weight: 500;
+          font-size: 11px;
+          color: #333;
         }
         table {
           width: 100%;
@@ -111,18 +152,19 @@ export function generatePDF(data: ReportData) {
           margin-bottom: 10px;
         }
         th, td {
-          border: 1px solid #e5e7eb;
+          border: 1px solid #e0e0e0;
           padding: 8px;
           text-align: left;
         }
         th {
-          background: #f3f4f6;
+          background: ${lightBlue};
           font-weight: 600;
-          font-size: 10px;
+          font-size: 9px;
           text-transform: uppercase;
+          color: ${brandBlue};
         }
         td {
-          font-size: 11px;
+          font-size: 10px;
         }
         .text-right {
           text-align: right;
@@ -131,8 +173,11 @@ export function generatePDF(data: ReportData) {
           text-align: center;
         }
         .footer-row {
-          background: #f9fafb;
+          background: ${lightBlue};
           font-weight: 600;
+        }
+        .footer-row td {
+          color: ${brandBlue};
         }
         .summary-grid {
           display: grid;
@@ -147,59 +192,112 @@ export function generatePDF(data: ReportData) {
         }
         .summary-box.deducao {
           background: #fef2f2;
-          border: 1px solid #fecaca;
+          border: 2px solid #fecaca;
         }
         .summary-box.valorizacao {
-          background: #f0fdf4;
-          border: 1px solid #bbf7d0;
+          background: ${lightGreen};
+          border: 2px solid ${brandGreen}60;
         }
         .summary-box.saldo {
-          background: ${saldoFinal >= 0 ? "#f0fdf4" : "#fef2f2"};
-          border: 1px solid ${saldoFinal >= 0 ? "#bbf7d0" : "#fecaca"};
+          background: ${saldoFinal >= 0 ? lightGreen : "#fef2f2"};
+          border: 2px solid ${saldoFinal >= 0 ? brandGreen : "#fecaca"};
         }
         .summary-label {
-          font-size: 10px;
-          color: #6b7280;
+          font-size: 9px;
+          color: #666;
           text-transform: uppercase;
           margin-bottom: 5px;
+          letter-spacing: 0.5px;
         }
         .summary-value {
           font-size: 18px;
           font-weight: 700;
         }
         .summary-value.red { color: #dc2626; }
-        .summary-value.green { color: #16a34a; }
+        .summary-value.green { color: ${brandGreen}; }
         .mo-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 15px;
         }
-        .agente-motivo {
-          background: #fff7ed;
-          border: 1px solid #fed7aa;
-          border-radius: 6px;
-          padding: 12px;
-          margin-bottom: 15px;
+        .mo-section h4 {
+          margin-bottom: 10px;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 6px 10px;
+          border-radius: 4px;
         }
-        .agente-motivo h4 {
-          color: #c2410c;
+        .mo-section.deducao h4 {
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+        .mo-section.valorizacao h4 {
+          background: ${lightGreen};
+          color: ${brandGreen};
+          border: 1px solid ${brandGreen}60;
+        }
+        .observacao-box {
+          background: ${lightBlue};
+          border: 1px solid ${brandBlue}30;
+          border-radius: 6px;
+          padding: 15px;
+          margin-bottom: 20px;
+        }
+        .observacao-box h4 {
+          font-size: 10px;
+          color: ${brandBlue};
           margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+        }
+        .observacao-box p {
+          font-size: 11px;
+          color: #333;
+          white-space: pre-wrap;
+          line-height: 1.5;
+        }
+        .page-footer {
+          margin-top: 30px;
+          padding-top: 15px;
+          border-top: 2px solid ${brandBlue};
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .page-footer p {
+          color: #888;
+          font-size: 9px;
+        }
+        .page-footer img {
+          height: 25px;
+          opacity: 0.7;
         }
         @media print {
-          body { padding: 10px; }
+          body { padding: 15px; }
           .section { page-break-inside: avoid; }
         }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>LAUDO DE REINSPEÇÃO</h1>
-        <p>ExpertiseCheck - Relatório de Auditoria</p>
+        <div class="header-left">
+          <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" alt="ControlExpert" />
+          <div class="header-title">
+            <h1>LAUDO DE REINSPEÇÃO</h1>
+            <p>Relatório de Auditoria de Sinistros</p>
+          </div>
+        </div>
+        <div style="text-align: right; font-size: 10px; color: #666;">
+          <p><strong>Data:</strong> ${new Date().toLocaleDateString("pt-BR")}</p>
+          <p><strong>Sinistro:</strong> ${data.header.sinistro || "-"}</p>
+        </div>
       </div>
 
       <div class="section">
         <div class="info-grid">
-          <div class="info-box">
+          <div class="info-box highlight">
             <h4>Informações do Sinistro</h4>
             <div class="info-item">
               <span class="info-label">Sinistro:</span>
@@ -248,15 +346,15 @@ export function generatePDF(data: ReportData) {
               <span class="info-value">${data.header.horaChegada || "-"}</span>
             </div>
           </div>
-          <div class="info-box" style="background: #fff7ed; border-color: #fed7aa;">
-            <h4 style="color: #c2410c;">Agente da Causa</h4>
+          <div class="info-box warning">
+            <h4 style="color: #c2410c; border-color: #f59e0b30;">Agente da Causa / Motivo</h4>
             <div class="info-item">
               <span class="info-label">Agente:</span>
               <span class="info-value">${data.header.agenteCausa || "-"}</span>
             </div>
-            <div style="margin-top: 8px;">
+            <div class="info-item">
               <span class="info-label">Motivo:</span>
-              <p style="margin-top: 4px; font-size: 10px;">${data.header.motivo || "-"}</p>
+              <span class="info-value">${data.header.motivo || "-"}</span>
             </div>
           </div>
         </div>
@@ -270,13 +368,13 @@ export function generatePDF(data: ReportData) {
         <table>
           <thead>
             <tr>
-              <th class="text-center">Qtde</th>
-              <th>Código</th>
+              <th class="text-center" style="width: 50px;">Qtde</th>
+              <th style="width: 100px;">Código</th>
               <th>Descrição</th>
-              <th class="text-right">Valor Bruto</th>
-              <th class="text-right">Desconto</th>
-              <th class="text-right">Valor Líquido</th>
-              <th class="text-right">Negociado</th>
+              <th class="text-right" style="width: 90px;">Valor Bruto</th>
+              <th class="text-right" style="width: 70px;">Desconto</th>
+              <th class="text-right" style="width: 90px;">Valor Líquido</th>
+              <th class="text-right" style="width: 90px;">Negociado</th>
             </tr>
           </thead>
           <tbody>
@@ -296,9 +394,9 @@ export function generatePDF(data: ReportData) {
               )
               .join("")}
             <tr class="footer-row">
-              <td colspan="5" class="text-right">Total:</td>
-              <td class="text-right">${formatCurrency(totalPecasLiquido)}</td>
-              <td class="text-right">${formatCurrency(totalPecasNegociado)}</td>
+              <td colspan="5" class="text-right"><strong>Total:</strong></td>
+              <td class="text-right"><strong>${formatCurrency(totalPecasLiquido)}</strong></td>
+              <td class="text-right"><strong>${formatCurrency(totalPecasNegociado)}</strong></td>
             </tr>
           </tbody>
         </table>
@@ -310,8 +408,8 @@ export function generatePDF(data: ReportData) {
       <div class="section">
         <div class="section-title">Glosas de Mão de Obra</div>
         <div class="mo-grid">
-          <div>
-            <h4 style="margin-bottom: 8px; color: #dc2626;">Dedução</h4>
+          <div class="mo-section deducao">
+            <h4>Dedução</h4>
             <table>
               <thead>
                 <tr>
@@ -335,18 +433,18 @@ export function generatePDF(data: ReportData) {
                   )
                   .join("")}
                 <tr class="footer-row">
-                  <td colspan="2" class="text-right">Total:</td>
-                  <td class="text-right">${totalHorasDeducao}h</td>
-                  <td class="text-right">${formatCurrency(totalMODeducao)}</td>
+                  <td colspan="2" class="text-right"><strong>Total:</strong></td>
+                  <td class="text-right"><strong>${totalHorasDeducao}h</strong></td>
+                  <td class="text-right"><strong>${formatCurrency(totalMODeducao)}</strong></td>
                 </tr>
               </tbody>
             </table>
-            <p style="margin-top: 8px; font-size: 10px;">
+            <p style="margin-top: 8px; font-size: 10px; color: #666;">
               <strong>Serviços de Terceiros:</strong> ${formatCurrency(data.servicosTerceiros.deducaoTotal)}
             </p>
           </div>
-          <div>
-            <h4 style="margin-bottom: 8px; color: #16a34a;">Valorização</h4>
+          <div class="mo-section valorizacao">
+            <h4>Valorização</h4>
             <table>
               <thead>
                 <tr>
@@ -370,18 +468,31 @@ export function generatePDF(data: ReportData) {
                   )
                   .join("")}
                 <tr class="footer-row">
-                  <td colspan="2" class="text-right">Total:</td>
-                  <td class="text-right">${totalHorasValorizacao}h</td>
-                  <td class="text-right">${formatCurrency(totalMOValorizacao)}</td>
+                  <td colspan="2" class="text-right"><strong>Total:</strong></td>
+                  <td class="text-right"><strong>${totalHorasValorizacao}h</strong></td>
+                  <td class="text-right"><strong>${formatCurrency(totalMOValorizacao)}</strong></td>
                 </tr>
               </tbody>
             </table>
-            <p style="margin-top: 8px; font-size: 10px;">
+            <p style="margin-top: 8px; font-size: 10px; color: #666;">
               <strong>Serviços de Terceiros:</strong> ${formatCurrency(data.servicosTerceiros.valorizacaoTotal)}
             </p>
           </div>
         </div>
       </div>
+
+      ${
+        data.observacao
+          ? `
+      <div class="section">
+        <div class="observacao-box">
+          <h4>Observações</h4>
+          <p>${data.observacao}</p>
+        </div>
+      </div>
+      `
+          : ""
+      }
 
       <div class="summary-grid">
         <div class="summary-box deducao">
@@ -398,9 +509,12 @@ export function generatePDF(data: ReportData) {
         </div>
       </div>
 
-      <div style="margin-top: 40px; text-align: center; color: #9ca3af; font-size: 10px;">
-        <p>Documento gerado em ${new Date().toLocaleString("pt-BR")}</p>
-        <p>ExpertiseCheck - Sistema de Auditoria de Sinistros</p>
+      <div class="page-footer">
+        <div>
+          <p>Documento gerado em ${new Date().toLocaleString("pt-BR")}</p>
+          <p>ControlExpert - Sistema de Auditoria de Sinistros</p>
+        </div>
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" alt="ControlExpert" />
       </div>
     </body>
     </html>
