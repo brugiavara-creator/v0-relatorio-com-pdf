@@ -2,66 +2,195 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 // Função para converter data serial do Excel para data real
-function excelDateToJSDate(serial: number): string {
+function excelDateToJSDate(serial: number): string | null {
+  if (!serial || isNaN(serial)) return null
   const utc_days = Math.floor(serial - 25569)
   const date = new Date(utc_days * 86400 * 1000)
   return date.toISOString().split("T")[0]
 }
 
-// Mapeamento de campos para cada seguradora
+function parseNumber(value: any): number {
+  if (value === null || value === undefined || value === "" || value === "-") return 0
+  if (typeof value === "number") return value
+  const cleaned = String(value).replace(/[R$\s.]/g, "").replace(",", ".")
+  const num = parseFloat(cleaned)
+  return isNaN(num) ? 0 : num
+}
+
+function extractMonth(dateStr: string | null): number | null {
+  if (!dateStr) return null
+  const date = new Date(dateStr)
+  return isNaN(date.getTime()) ? null : date.getMonth() + 1
+}
+
+function extractYear(dateStr: string | null): number | null {
+  if (!dateStr) return null
+  const date = new Date(dateStr)
+  return isNaN(date.getTime()) ? null : date.getFullYear()
+}
+
+// Mapeamento completo para ALLIANZ
 function mapAllianzData(item: any) {
+  const dataInspecao = item.Data ? excelDateToJSDate(item.Data) : null
+  const mes = extractMonth(dataInspecao)
+  const ano = extractYear(dataInspecao)
+  
+  const savingPecas = parseNumber(item["Saving de Peças"] || item["Saving Peças"] || 0)
+  const savingMO = parseNumber(item["Saving de Mão de obra"] || item["Saving MO"] || 0)
+  const savingReal = parseNumber(item["Saving Real"] || 0)
+  const savingPotencial = parseNumber(item["Saving Potencial"] || 0)
+  
   return {
     seguradora: "ALLIANZ SEGUROS",
     sinistro: String(item.Sinistro || ""),
     placa: item.Placa || "",
-    tipo_cliente: item["Terceiro/Segurado"] || "",
+    chassi: item.Chassi || "",
+    marca: item.Marca || item.Fabricante || "",
+    modelo: item.Modelo || "",
+    tipo_veiculo: item["Tipo Veículo"] || item.Tipo || "",
+    fabricante: item.Fabricante || item.Marca || "",
+    tipo_cliente: item["Terceiro/Segurado"] || item["Tipo Cliente"] || "",
     oficina: item.Oficina || "",
-    credenciamento: item["Referenciada/Cadastrada/DRP"] || "",
-    tipo_oficina: item["Tipo (Conc ou oficina)"] === "Concessionaria" ? "Concessionária" : "Linhas gerais",
-    estado: item.UF || "",
+    credenciamento: item["Referenciada/Cadastrada/DRP"] || item.Credenciamento || "",
+    tipo_oficina: item["Tipo (Conc ou oficina)"] === "Concessionaria" ? "Concessionária" : (item["Tipo (Conc ou oficina)"] || "Linhas gerais"),
+    cidade: item.Cidade || item.Município || "",
+    municipio: item.Município || item.Cidade || "",
+    uf: item.UF || item.Estado || "",
     regulador: item.Regulador || "",
     perito: item.Perito || "",
-    data_inspecao: item.Data ? excelDateToJSDate(item.Data) : null,
-    valor_inicial_orcamento: parseFloat(item["Valor Orçamento"]) || 0,
-    observacao: "Importado via JSON - Allianz Janeiro 2026",
+    regulacao_perito: item.Perito || item.Regulador || "",
+    data_inspecao: dataInspecao,
+    mes,
+    ano,
+    agente_causa: item["Agente da Causa"] || item.Agente || "",
+    motivo: item.Motivo || item["Descrição Glosa"] || "",
+    descricao_glosa: item["Descrição Glosa"] || item.Motivo || item.Glosa || "",
+    valor_orcamento: parseNumber(item["Valor Orçamento"] || item["Vlr Orçamento"] || 0),
+    franquia: parseNumber(item.Franquia || 0),
+    valor_auditado: parseNumber(item["Valor Auditado"] || item["Vlr Auditado"] || 0),
+    saving_pecas: savingPecas,
+    saving_mo: savingMO,
+    saving_real: savingReal,
+    saving_potencial: savingPotencial,
+    total_pecas_deduzidas: savingPecas,
+    total_pecas_negociadas: 0,
+    total_mo_deduzida: savingMO,
+    total_mo_incluida: 0,
+    total_deducoes: savingPecas + savingMO,
+    total_inclusoes: 0,
+    saldo_final: -(savingPecas + savingMO),
+    houve_ajuste: (savingPecas > 0 || savingMO > 0) ? "SIM" : "NÃO",
+    observacao: "Importado via JSON - Allianz",
   }
 }
 
+// Mapeamento completo para MAPFRE
 function mapMapfreData(item: any) {
+  const dataInspecao = item.Data ? excelDateToJSDate(item.Data) : null
+  const mes = extractMonth(dataInspecao)
+  const ano = extractYear(dataInspecao)
+  
+  const savingPecas = parseNumber(item["Saving de Peças"] || item["Saving Peças"] || 0)
+  const savingMO = parseNumber(item["Saving de Mão de obra"] || item["Saving MO"] || 0)
+  const savingReal = parseNumber(item["Saving Real"] || 0)
+  const savingPotencial = parseNumber(item["Saving Potencial"] || 0)
+  
   return {
     seguradora: "MAPFRE SEGUROS",
-    sinistro: String(item["Nº. Sinistro"] || ""),
+    sinistro: String(item["Nº. Sinistro"] || item.Sinistro || ""),
     placa: item.Placa || "",
+    chassi: item.Chassi || "",
+    marca: item.Marca || item.Fabricante || "",
     modelo: item.Modelo || "",
-    tipo_cliente: "",
-    oficina: "",
-    credenciamento: "",
-    tipo_oficina: "",
-    estado: item.UF || "",
-    regulador: item["Reguladora - Regulador"] || "",
-    perito: item.Analista || "",
-    data_inspecao: item.Data ? excelDateToJSDate(item.Data) : null,
-    valor_inicial_orcamento: parseFloat(item["Valot total"]) || 0,
-    observacao: item["Observações"] || "Importado via JSON - Mapfre Janeiro 2026",
+    tipo_veiculo: item["Tipo Veículo"] || item.Tipo || "",
+    fabricante: item.Fabricante || item.Marca || "",
+    tipo_cliente: item["Tipo de cliente"] || item["Tipo Cliente"] || "",
+    oficina: item.Oficina || "",
+    credenciamento: item["Tipo de cadastro"] || item.Credenciamento || "",
+    tipo_oficina: item["Tipo Oficina"] || "",
+    cidade: item.Cidade || item.Município || "",
+    municipio: item.Município || item.Cidade || "",
+    uf: item.UF || item.Estado || "",
+    regulador: item["Reguladora - Regulador"] || item.Regulador || "",
+    perito: item.Analista || item.Perito || "",
+    regulacao_perito: item.Analista || item["Reguladora - Regulador"] || "",
+    data_inspecao: dataInspecao,
+    mes,
+    ano,
+    agente_causa: item["Agente da Causa"] || item.Agente || "",
+    motivo: item.Motivo || item["Descrição Glosa"] || "",
+    descricao_glosa: item["Descrição Glosa"] || item.Motivo || item.Glosa || "",
+    valor_orcamento: parseNumber(item["Valot total"] || item["Valor total"] || item["Valor Orçamento"] || 0),
+    franquia: parseNumber(item.Franquia || 0),
+    valor_auditado: parseNumber(item["Valor Auditado"] || 0),
+    saving_pecas: savingPecas,
+    saving_mo: savingMO,
+    saving_real: savingReal,
+    saving_potencial: savingPotencial,
+    total_pecas_deduzidas: savingPecas,
+    total_pecas_negociadas: 0,
+    total_mo_deduzida: savingMO,
+    total_mo_incluida: 0,
+    total_deducoes: savingPecas + savingMO,
+    total_inclusoes: 0,
+    saldo_final: -(savingPecas + savingMO),
+    houve_ajuste: (savingPecas > 0 || savingMO > 0) ? "SIM" : "NÃO",
+    observacao: item["Observações"] || "Importado via JSON - Mapfre",
   }
 }
 
+// Mapeamento completo para PIER
 function mapPierData(item: any) {
+  const dataInspecao = item.Data ? excelDateToJSDate(item.Data) : null
+  const mes = extractMonth(dataInspecao)
+  const ano = extractYear(dataInspecao)
+  
+  const savingPecas = parseNumber(item["Saving de Peças"] || item["Saving Peças"] || 0)
+  const savingMO = parseNumber(item["Saving de Mão de obra"] || item["Saving MO"] || 0)
+  const savingReal = parseNumber(item["Saving Real"] || 0)
+  const savingPotencial = parseNumber(item["Saving Potencial"] || 0)
+  
   return {
     seguradora: "PIER SEGUROS",
-    sinistro: String(item["Nº. Sinistro"] || ""),
+    sinistro: String(item["Nº. Sinistro"] || item.Sinistro || ""),
     placa: item.Placa || "",
+    chassi: item.Chassi || "",
+    marca: item.Marca || item.Fabricante || "",
     modelo: item.Modelo || "",
-    tipo_cliente: item["Tipo de cliente"] || "",
+    tipo_veiculo: item["Tipo Veículo"] || item.Tipo || "",
+    fabricante: item.Fabricante || item.Marca || "",
+    tipo_cliente: item["Tipo de cliente"] || item["Tipo Cliente"] || "",
     oficina: item.Oficina || "",
-    credenciamento: item["Tipo de cadastro"] || "",
-    tipo_oficina: "",
-    estado: item.UF || "",
-    regulador: item["Reguladora - Regulador"] || "",
-    perito: item.Analista || "",
-    data_inspecao: item.Data ? excelDateToJSDate(item.Data) : null,
-    valor_inicial_orcamento: parseFloat(item["Valor total"]) || 0,
-    observacao: item["Observações"] || "Importado via JSON - Pier Janeiro 2026",
+    credenciamento: item["Tipo de cadastro"] || item.Credenciamento || "",
+    tipo_oficina: item["Tipo Oficina"] || "",
+    cidade: item.Cidade || item.Município || "",
+    municipio: item.Município || item.Cidade || "",
+    uf: item.UF || item.Estado || "",
+    regulador: item["Reguladora - Regulador"] || item.Regulador || "",
+    perito: item.Analista || item.Perito || "",
+    regulacao_perito: item.Analista || item["Reguladora - Regulador"] || "",
+    data_inspecao: dataInspecao,
+    mes,
+    ano,
+    agente_causa: item["Agente da Causa"] || item.Agente || "",
+    motivo: item.Motivo || item["Descrição Glosa"] || "",
+    descricao_glosa: item["Descrição Glosa"] || item.Motivo || item.Glosa || "",
+    valor_orcamento: parseNumber(item["Valor total"] || item["Valor Orçamento"] || 0),
+    franquia: parseNumber(item.Franquia || 0),
+    valor_auditado: parseNumber(item["Valor Auditado"] || 0),
+    saving_pecas: savingPecas,
+    saving_mo: savingMO,
+    saving_real: savingReal,
+    saving_potencial: savingPotencial,
+    total_pecas_deduzidas: savingPecas,
+    total_pecas_negociadas: 0,
+    total_mo_deduzida: savingMO,
+    total_mo_incluida: 0,
+    total_deducoes: savingPecas + savingMO,
+    total_inclusoes: 0,
+    saldo_final: -(savingPecas + savingMO),
+    houve_ajuste: (savingPecas > 0 || savingMO > 0) ? "SIM" : "NÃO",
+    observacao: item["Observações"] || "Importado via JSON - Pier",
   }
 }
 
