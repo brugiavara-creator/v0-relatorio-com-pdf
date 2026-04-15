@@ -7,6 +7,7 @@ export interface ReportHeader {
   marca: string
   modelo: string
   placa: string
+  chassi: string
   oficina: string
   tipoOficina: string
   credenciamento: string
