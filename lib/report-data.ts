@@ -54,11 +54,18 @@ export interface ServicosTerceiros {
   deducaoTotal: number
 }
 
+export interface Foto {
+  id: string
+  url: string
+  descricao: string
+}
+
 export interface ReportData {
   header: ReportHeader
   pecasGlosadas: PecaGlosada[]
   maoDeObra: MaoDeObraGlosa
   servicosTerceiros: ServicosTerceiros
+  fotos: Foto[]
   observacao: string
   valorInicialOrcamento: number
   franquia: number
@@ -137,6 +144,7 @@ export const emptyReportData: ReportData = {
     valorizacaoTotal: 0,
     deducaoTotal: 0,
   },
+  fotos: [],
   observacao: "",
   valorInicialOrcamento: 0,
   franquia: 0,

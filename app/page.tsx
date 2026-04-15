@@ -5,14 +5,17 @@ import { Button } from "@/components/ui/button"
 import { HeaderSection } from "@/components/report/header-section"
 import { PecasSection } from "@/components/report/pecas-section"
 import { MaoDeObraSection } from "@/components/report/mao-de-obra-section"
+import { FotosSection } from "@/components/report/fotos-section"
 import { ObservacaoSection } from "@/components/report/observacao-section"
 import { SummarySection } from "@/components/report/summary-section"
 import { emptyReportData, type ReportData } from "@/lib/report-data"
 import { generatePDF } from "@/lib/pdf-generator"
-import { FileDown, RotateCcw } from "lucide-react"
+import { FileDown, RotateCcw, Save, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 export default function ReportPage() {
   const [reportData, setReportData] = useState<ReportData>(emptyReportData)
+  const [isSaving, setIsSaving] = useState(false)
 
   const handleReset = () => {
     if (confirm("Deseja limpar todos os dados do relatório?")) {
@@ -22,6 +25,39 @@ export default function ReportPage() {
 
   const handleGeneratePDF = () => {
     generatePDF(reportData)
+  }
+
+  const handleSaveToDatabase = async () => {
+    if (!reportData.header.sinistro) {
+      toast.error("Por favor, preencha o número do sinistro antes de salvar.")
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const response = await fetch("/api/laudos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reportData),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        toast.success("Laudo salvo com sucesso no banco de dados!")
+        // Gerar PDF após salvar
+        generatePDF(reportData)
+      } else {
+        toast.error(result.error || "Erro ao salvar o laudo")
+      }
+    } catch (error) {
+      console.error("Erro ao salvar:", error)
+      toast.error("Erro ao conectar com o servidor")
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -47,11 +83,24 @@ export default function ReportPage() {
             </Button>
             <Button 
               size="sm" 
+              variant="outline"
               onClick={handleGeneratePDF} 
-              className="bg-primary hover:bg-primary/90"
             >
               <FileDown className="mr-2 h-4 w-4" />
               Gerar PDF
+            </Button>
+            <Button 
+              size="sm" 
+              onClick={handleSaveToDatabase} 
+              className="bg-primary hover:bg-primary/90"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              {isSaving ? "Salvando..." : "Salvar e Gerar PDF"}
             </Button>
           </div>
         </div>
@@ -91,6 +140,17 @@ export default function ReportPage() {
               onServicosTerceirosChange={(servicosTerceiros) =>
                 setReportData({ ...reportData, servicosTerceiros })
               }
+            />
+          </section>
+
+          {/* Fotos */}
+          <section>
+            <div className="mb-4 rounded-lg bg-primary px-4 py-3">
+              <h2 className="text-xl font-bold text-primary-foreground uppercase tracking-wide">FOTOS</h2>
+            </div>
+            <FotosSection
+              data={reportData.fotos}
+              onChange={(fotos) => setReportData({ ...reportData, fotos })}
             />
           </section>
 

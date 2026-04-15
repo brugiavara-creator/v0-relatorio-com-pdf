@@ -505,6 +505,28 @@ export function generatePDF(data: ReportData) {
       </div>
 
       ${
+        data.fotos && data.fotos.length > 0
+          ? `
+      <div class="section">
+        <div class="section-title">Fotos</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          ${data.fotos
+            .map(
+              (foto) => `
+            <div style="border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+              <img src="${foto.url}" alt="${foto.descricao || "Foto do laudo"}" style="width: 100%; height: 120px; object-fit: cover;" />
+              ${foto.descricao ? `<p style="font-size: 9px; color: #666; padding: 6px; margin: 0; border-top: 1px solid #e0e0e0; background: #f9f9f9;">${foto.descricao}</p>` : ""}
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+      `
+          : ""
+      }
+
+      ${
         data.observacao
           ? `
       <div class="section">
