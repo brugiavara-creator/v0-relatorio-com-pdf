@@ -10,8 +10,9 @@ import { ObservacaoSection } from "@/components/report/observacao-section"
 import { SummarySection } from "@/components/report/summary-section"
 import { emptyReportData, type ReportData } from "@/lib/report-data"
 import { generatePDF } from "@/lib/pdf-generator"
-import { FileDown, RotateCcw, Save, Loader2 } from "lucide-react"
+import { FileDown, RotateCcw, Save, Loader2, BarChart3 } from "lucide-react"
 import { toast } from "sonner"
+import Link from "next/link"
 
 export default function ReportPage() {
   const [reportData, setReportData] = useState<ReportData>(emptyReportData)
@@ -77,6 +78,12 @@ export default function ReportPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/dashboard">
+              <Button variant="outline" size="sm">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Dashboard
+              </Button>
+            </Link>
             <Button variant="outline" size="sm" onClick={handleReset}>
               <RotateCcw className="mr-2 h-4 w-4" />
               Limpar
