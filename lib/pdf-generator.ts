@@ -1,6 +1,8 @@
 import type { ReportData } from "./report-data"
+import jsPDF from "jspdf"
+import html2canvas from "html2canvas"
 
-export function generatePDF(data: ReportData) {
+export async function generatePDF(data: ReportData) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -334,6 +336,10 @@ export function generatePDF(data: ReportData) {
               <span class="info-label">Placa:</span>
               <span class="info-value">${data.header.placa || "-"}</span>
             </div>
+            <div class="info-item">
+              <span class="info-label">Chassi:</span>
+              <span class="info-value">${data.header.chassi || "-"}</span>
+            </div>
           </div>
           <div class="info-box">
             <h4>Informações da Oficina</h4>
@@ -559,13 +565,76 @@ export function generatePDF(data: ReportData) {
     </html>
   `
 
-  // Abrir nova janela e imprimir
-  const printWindow = window.open("", "_blank")
-  if (printWindow) {
-    printWindow.document.write(html)
-    printWindow.document.close()
-    printWindow.onload = () => {
-      printWindow.print()
+  // Gerar nome do arquivo com a placa
+  const placa = data.header.placa?.replace(/[^a-zA-Z0-9]/g, "") || "sem-placa"
+  const fileName = `Laudo_${placa}.pdf`
+
+  // Criar container temporário para renderização
+  const container = document.createElement("div")
+  container.innerHTML = html
+  container.style.position = "absolute"
+  container.style.left = "-9999px"
+  container.style.top = "0"
+  container.style.width = "210mm"
+  document.body.appendChild(container)
+
+  // Aguardar carregamento de imagens
+  const images = container.getElementsByTagName("img")
+  const imagePromises = Array.from(images).map((img) => {
+    return new Promise((resolve) => {
+      if (img.complete) {
+        resolve(true)
+      } else {
+        img.onload = () => resolve(true)
+        img.onerror = () => resolve(true)
+      }
+    })
+  })
+  
+  await Promise.all(imagePromises)
+  await new Promise(resolve => setTimeout(resolve, 300))
+
+  try {
+    // Gerar canvas a partir do HTML
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    })
+
+    // Criar PDF
+    const imgWidth = 210 // A4 width in mm
+    const pageHeight = 297 // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+    
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    })
+
+    let heightLeft = imgHeight
+    let position = 0
+    const imgData = canvas.toDataURL("image/png")
+
+    // Primeira página
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight)
+    heightLeft -= pageHeight
+
+    // Páginas adicionais se necessário
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight
+      pdf.addPage()
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
     }
+
+    // Baixar PDF
+    pdf.save(fileName)
+  } finally {
+    // Remover container temporário
+    document.body.removeChild(container)
   }
 }

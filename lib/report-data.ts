@@ -108,6 +108,7 @@ export const emptyReportData: ReportData = {
     marca: "",
     modelo: "",
     placa: "",
+    chassi: "",
     oficina: "",
     tipoOficina: "",
     credenciamento: "",

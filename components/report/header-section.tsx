@@ -137,15 +137,26 @@ export function HeaderSection({ data, onChange }: HeaderSectionProps) {
                   placeholder="Modelo do veículo"
                 />
               </Field>
-              <Field>
-                <FieldLabel htmlFor="placa">Placa</FieldLabel>
-                <Input
-                  id="placa"
-                  value={data.placa}
-                  onChange={(e) => handleChange("placa", e.target.value)}
-                  placeholder="ABC-1234"
-                />
-              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="placa">Placa</FieldLabel>
+                  <Input
+                    id="placa"
+                    value={data.placa}
+                    onChange={(e) => handleChange("placa", e.target.value)}
+                    placeholder="ABC-1234"
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="chassi">Chassi</FieldLabel>
+                  <Input
+                    id="chassi"
+                    value={data.chassi}
+                    onChange={(e) => handleChange("chassi", e.target.value)}
+                    placeholder="Chassi do veículo"
+                  />
+                </Field>
+              </div>
             </FieldGroup>
           </CardContent>
         </Card>
