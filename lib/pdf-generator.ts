@@ -1,11 +1,6 @@
 import type { ReportData } from "./report-data"
 
-export async function generatePDF(data: ReportData) {
-  // Importação dinâmica para evitar problemas com SSR
-  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-    import("jspdf"),
-    import("html2canvas"),
-  ])
+export function generatePDF(data: ReportData) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -570,74 +565,41 @@ export async function generatePDF(data: ReportData) {
 
   // Gerar nome do arquivo com a placa
   const placa = data.header.placa?.replace(/[^a-zA-Z0-9]/g, "") || "sem-placa"
-  const fileName = `Laudo_${placa}.pdf`
+  const fileName = `Laudo_${placa}`
 
-  // Criar container temporário para renderização
-  const container = document.createElement("div")
-  container.innerHTML = html
-  container.style.position = "absolute"
-  container.style.left = "-9999px"
-  container.style.top = "0"
-  container.style.width = "210mm"
-  document.body.appendChild(container)
+  // Criar um iframe oculto para a impressão
+  const iframe = document.createElement("iframe")
+  iframe.style.position = "fixed"
+  iframe.style.right = "0"
+  iframe.style.bottom = "0"
+  iframe.style.width = "0"
+  iframe.style.height = "0"
+  iframe.style.border = "none"
+  document.body.appendChild(iframe)
 
-  // Aguardar carregamento de imagens
-  const images = container.getElementsByTagName("img")
-  const imagePromises = Array.from(images).map((img) => {
-    return new Promise((resolve) => {
-      if (img.complete) {
-        resolve(true)
-      } else {
-        img.onload = () => resolve(true)
-        img.onerror = () => resolve(true)
-      }
-    })
-  })
-  
-  await Promise.all(imagePromises)
-  await new Promise(resolve => setTimeout(resolve, 300))
+  const iframeDoc = iframe.contentWindow?.document
+  if (!iframeDoc) {
+    document.body.removeChild(iframe)
+    return
+  }
 
-  try {
-    // Gerar canvas a partir do HTML
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-    })
+  iframeDoc.open()
+  iframeDoc.write(html)
+  iframeDoc.close()
 
-    // Criar PDF
-    const imgWidth = 210 // A4 width in mm
-    const pageHeight = 297 // A4 height in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
-    
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    })
+  // Configurar título do documento para o nome do arquivo
+  iframeDoc.title = fileName
 
-    let heightLeft = imgHeight
-    let position = 0
-    const imgData = canvas.toDataURL("image/png")
-
-    // Primeira página
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight)
-    heightLeft -= pageHeight
-
-    // Páginas adicionais se necessário
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight
-      pdf.addPage()
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-    }
-
-    // Baixar PDF
-    pdf.save(fileName)
-  } finally {
-    // Remover container temporário
-    document.body.removeChild(container)
+  // Aguardar carregamento completo
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      
+      // Remover iframe após impressão
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 1000)
+    }, 500)
   }
 }

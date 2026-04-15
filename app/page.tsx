@@ -20,18 +20,8 @@ export default function ReportPage() {
     }
   }
 
-  const [isGenerating, setIsGenerating] = useState(false)
-
-  const handleGeneratePDF = async () => {
-    setIsGenerating(true)
-    try {
-      await generatePDF(reportData)
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error)
-      alert("Erro ao gerar PDF. Tente novamente.")
-    } finally {
-      setIsGenerating(false)
-    }
+  const handleGeneratePDF = () => {
+    generatePDF(reportData)
   }
 
   return (
@@ -59,10 +49,9 @@ export default function ReportPage() {
               size="sm" 
               onClick={handleGeneratePDF} 
               className="bg-primary hover:bg-primary/90"
-              disabled={isGenerating}
             >
               <FileDown className="mr-2 h-4 w-4" />
-              {isGenerating ? "Gerando..." : "Gerar PDF"}
+              Gerar PDF
             </Button>
           </div>
         </div>
