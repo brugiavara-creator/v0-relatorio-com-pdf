@@ -93,16 +93,20 @@ export function generatePDF(data: ReportData) {
           margin-bottom: 20px;
         }
         .section-title {
-          font-size: 12px;
-          font-weight: 600;
+          font-size: 14px;
+          font-weight: 700;
           color: #fff;
           background: ${brandBlue};
-          padding: 8px 12px;
-          margin-bottom: 12px;
-          border-radius: 4px;
+          padding: 12px 16px;
+          margin-bottom: 15px;
+          border-radius: 6px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          box-shadow: 0 2px 4px rgba(0, 102, 161, 0.2);
         }
         .section-title.green {
           background: ${brandGreen};
+          box-shadow: 0 2px 4px rgba(90, 154, 122, 0.2);
         }
         .info-grid {
           display: grid;
@@ -385,7 +389,7 @@ export function generatePDF(data: ReportData) {
         data.pecasGlosadas.length > 0
           ? `
       <div class="section">
-        <div class="section-title">Glosas de Peças</div>
+        <div class="section-title">GLOSAS DE PEÇAS</div>
         <table>
           <thead>
             <tr>
@@ -427,7 +431,7 @@ export function generatePDF(data: ReportData) {
       }
 
       <div class="section">
-        <div class="section-title">Glosas de Mão de Obra</div>
+        <div class="section-title">GLOSAS DE MÃO DE OBRA</div>
         <div class="mo-grid">
           <div class="mo-section deducao">
             <h4>Dedução</h4>
@@ -508,7 +512,7 @@ export function generatePDF(data: ReportData) {
         data.fotos && data.fotos.length > 0
           ? `
       <div class="section">
-        <div class="section-title">Fotos</div>
+        <div class="section-title">FOTOS</div>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
           ${data.fotos
             .map(
@@ -540,7 +544,7 @@ export function generatePDF(data: ReportData) {
       }
 
       <div class="section">
-        <div class="section-title">Resumo</div>
+        <div class="section-title">RESUMO</div>
         
         <!-- Valores do Orçamento -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
