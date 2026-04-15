@@ -29,11 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
+
 import {
   FileText,
   TrendingDown,
@@ -407,18 +403,17 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="px-4 pb-4">
               {loading ? <Skeleton className="h-[200px]" /> : (
-                <ChartContainer config={{}} className="h-[200px] w-full">
-                  <ResponsiveContainer>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartSeguradora} layout="vertical" margin={{ left: 0, right: 16 }}>
                       <XAxis type="number" fontSize={10} tickFormatter={formatNumber} />
                       <YAxis type="category" dataKey="name" fontSize={10} width={90} tickLine={false} axisLine={false} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="total" radius={[0, 4, 4, 0]}>
                         {chartSeguradora.map((e, i) => <Cell key={i} fill={e.fill} />)}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -430,18 +425,17 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="px-4 pb-4">
               {loading ? <Skeleton className="h-[200px]" /> : (
-                <ChartContainer config={{}} className="h-[200px] w-full">
-                  <ResponsiveContainer>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartUF} margin={{ left: 0, right: 16 }}>
                       <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} />
                       <YAxis fontSize={10} tickFormatter={formatNumber} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                         {chartUF.map((e, i) => <Cell key={i} fill={e.fill} />)}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -453,16 +447,15 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="px-4 pb-4">
               {loading ? <Skeleton className="h-[200px]" /> : (
-                <ChartContainer config={{}} className="h-[200px] w-full">
-                  <ResponsiveContainer>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={chartMotivo} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={2} dataKey="value">
                         {chartMotivo.map((e, i) => <Cell key={i} fill={e.fill} />)}
                       </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
                     </PieChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -474,8 +467,8 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="px-4 pb-4">
               {loading ? <Skeleton className="h-[200px]" /> : (
-                <ChartContainer config={{}} className="h-[200px] w-full">
-                  <ResponsiveContainer>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartMensal} margin={{ left: 0, right: 16 }}>
                       <defs>
                         <linearGradient id="colorLaudos" x1="0" y1="0" x2="0" y2="1">
@@ -486,11 +479,10 @@ export default function DashboardPage() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="name" fontSize={10} tickLine={false} />
                       <YAxis fontSize={10} tickFormatter={formatNumber} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
                       <Area type="monotone" dataKey="laudos" stroke="#0066a1" fillOpacity={1} fill="url(#colorLaudos)" strokeWidth={2} />
                     </AreaChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               )}
             </CardContent>
           </Card>
