@@ -7,7 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Upload, FileJson, Loader2, CheckCircle2, AlertCircle, ArrowLeft, BarChart3 } from "lucide-react"
+import { Upload, FileJson, Loader2, CheckCircle2, AlertCircle, ArrowLeft, BarChart3, Trash2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import Link from "next/link"
 
 const SEGURADORAS = [
@@ -20,6 +31,8 @@ export default function ImportPage() {
   const [seguradora, setSeguradora] = useState("")
   const [jsonData, setJsonData] = useState("")
   const [isImporting, setIsImporting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [seguradoraToDelete, setSeguradoraToDelete] = useState("")
   const [result, setResult] = useState<{
     success: boolean
     message: string
@@ -114,6 +127,62 @@ export default function ImportPage() {
   const handleClear = () => {
     setJsonData("")
     setResult(null)
+  }
+
+  const handleDeleteBySeguradora = async (seg: string) => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/laudos/delete?seguradora=${seg}`, {
+        method: "DELETE",
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(data.message)
+        setResult({
+          success: true,
+          message: data.message,
+        })
+      } else {
+        toast.error(data.error)
+        setResult({
+          success: false,
+          message: data.error,
+        })
+      }
+    } catch (error) {
+      toast.error("Erro ao deletar dados")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteAll = async () => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch("/api/laudos/delete?all=true", {
+        method: "DELETE",
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(data.message)
+        setResult({
+          success: true,
+          message: data.message,
+        })
+      } else {
+        toast.error(data.error)
+        setResult({
+          success: false,
+          message: data.error,
+        })
+      }
+    } catch (error) {
+      toast.error("Erro ao deletar dados")
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -293,6 +362,115 @@ Exemplo:
               </CardContent>
             </Card>
           )}
+
+          {/* Excluir Dados */}
+          <Card className="border-red-200 dark:border-red-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600">
+                <Trash2 className="h-5 w-5" />
+                Excluir Dados Importados
+              </CardTitle>
+              <CardDescription>
+                Remova os dados importados do banco de dados. Esta acao nao pode ser desfeita.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Excluir por Seguradora */}
+              <div className="space-y-2">
+                <Label>Excluir por Seguradora</Label>
+                <div className="flex gap-2">
+                  <Select value={seguradoraToDelete} onValueChange={setSeguradoraToDelete}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione a seguradora" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SEGURADORAS.map((seg) => (
+                        <SelectItem key={seg.value} value={seg.value}>
+                          {seg.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        disabled={!seguradoraToDelete || isDeleting}
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="mr-2 h-4 w-4" />
+                        )}
+                        Excluir
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusao</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Voce tem certeza que deseja excluir todos os dados da seguradora{" "}
+                          <strong>{seguradoraToDelete}</strong>? Esta acao nao pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteBySeguradora(seguradoraToDelete)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Sim, excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              {/* Excluir Todos */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-red-600">Excluir TODOS os dados</p>
+                    <p className="text-sm text-muted-foreground">
+                      Remove todos os laudos de todas as seguradoras
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" disabled={isDeleting}>
+                        {isDeleting ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="mr-2 h-4 w-4" />
+                        )}
+                        Excluir Tudo
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusao total</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <strong className="text-red-600">ATENCAO!</strong> Voce tem certeza que deseja excluir{" "}
+                          <strong>TODOS</strong> os dados de laudos do banco de dados? Esta acao e irreversivel
+                          e removera todos os registros de todas as seguradoras.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAll}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Sim, excluir TUDO
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Mapeamento de campos */}
           <Card>
