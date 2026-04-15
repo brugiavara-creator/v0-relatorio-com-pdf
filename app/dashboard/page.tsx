@@ -37,6 +37,7 @@ import {
   PieChartIcon,
   ArrowLeft,
   RefreshCw,
+  Upload,
 } from "lucide-react"
 
 interface DashboardData {
@@ -167,6 +168,12 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold text-primary">DASHBOARD DE INDICADORES</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/import">
+              <Button variant="outline" size="sm">
+                <Upload className="mr-2 h-4 w-4" />
+                Importar Dados
+              </Button>
+            </Link>
             <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Atualizar
