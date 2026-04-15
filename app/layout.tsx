@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Relatório ExpertiseCheck - ControlExpert',
-  description: 'Sistema de Laudo de Reinspeção e Auditoria de Sinistros',
+  title: 'Laudo de Monitoria - ControlExpert',
+  description: 'Sistema de Laudo de Monitoria de Sinistros',
   generator: 'v0.app',
   icons: {
     icon: [

@@ -43,7 +43,7 @@ export function generatePDF(data: ReportData) {
     <html lang="pt-BR">
     <head>
       <meta charset="UTF-8">
-      <title>Laudo de Reinspeção - ${data.header.sinistro || "Sem número"}</title>
+      <title>Laudo de Monitoria - ${data.header.sinistro || "Sem número"}</title>
       <style>
         * {
           margin: 0;
@@ -294,8 +294,8 @@ export function generatePDF(data: ReportData) {
         <div class="header-left">
           <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" alt="ControlExpert" />
           <div class="header-title">
-            <h1>LAUDO DE REINSPEÇÃO</h1>
-            <p>Relatório de Auditoria de Sinistros</p>
+            <h1>LAUDO DE MONITORIA</h1>
+            <p>Relatório de Monitoria de Sinistros</p>
           </div>
         </div>
         <div style="text-align: right; font-size: 10px; color: #666;">
@@ -613,7 +613,7 @@ export function generatePDF(data: ReportData) {
       <div class="page-footer">
         <div>
           <p>Documento gerado em ${new Date().toLocaleString("pt-BR")}</p>
-          <p>ControlExpert - Sistema de Auditoria de Sinistros</p>
+          <p>ControlExpert - Sistema de Monitoria de Sinistros</p>
         </div>
         <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" alt="ControlExpert" />
       </div>
