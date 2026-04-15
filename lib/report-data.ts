@@ -1,5 +1,6 @@
 export interface ReportHeader {
   sinistro: string
+  tipoCliente: string
   regulador: string
   perito: string
   cidade: string
@@ -7,12 +8,20 @@ export interface ReportHeader {
   modelo: string
   placa: string
   oficina: string
+  tipoOficina: string
+  credenciamento: string
   data: string
   horaChegada: string
   estado: string
   agenteCausa: string
   motivo: string
 }
+
+export const TIPOS_CLIENTE = ["Segurado", "Terceiro"] as const
+
+export const TIPOS_OFICINA = ["Concessionária", "Linhas gerais"] as const
+
+export const CREDENCIAMENTOS = ["Cadastrada", "Referenciada", "DRP"] as const
 
 export interface PecaGlosada {
   id: string
@@ -90,6 +99,7 @@ export const MOTIVOS = [
 export const emptyReportData: ReportData = {
   header: {
     sinistro: "",
+    tipoCliente: "",
     regulador: "",
     perito: "",
     cidade: "",
@@ -97,6 +107,8 @@ export const emptyReportData: ReportData = {
     modelo: "",
     placa: "",
     oficina: "",
+    tipoOficina: "",
+    credenciamento: "",
     data: "",
     horaChegada: "",
     estado: "",

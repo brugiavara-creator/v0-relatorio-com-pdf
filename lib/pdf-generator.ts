@@ -304,6 +304,10 @@ export function generatePDF(data: ReportData) {
               <span class="info-value">${data.header.sinistro || "-"}</span>
             </div>
             <div class="info-item">
+              <span class="info-label">Tipo de Cliente:</span>
+              <span class="info-value">${data.header.tipoCliente || "-"}</span>
+            </div>
+            <div class="info-item">
               <span class="info-label">Regulador:</span>
               <span class="info-value">${data.header.regulador || "-"}</span>
             </div>
@@ -336,6 +340,14 @@ export function generatePDF(data: ReportData) {
             <div class="info-item">
               <span class="info-label">Oficina:</span>
               <span class="info-value">${data.header.oficina || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tipo da Oficina:</span>
+              <span class="info-value">${data.header.tipoOficina || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Credenciamento:</span>
+              <span class="info-value">${data.header.credenciamento || "-"}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Data:</span>

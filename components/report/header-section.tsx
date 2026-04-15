@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ReportHeader } from "@/lib/report-data"
-import { AGENTES_CAUSA, MOTIVOS } from "@/lib/report-data"
+import { AGENTES_CAUSA, MOTIVOS, TIPOS_CLIENTE, TIPOS_OFICINA, CREDENCIAMENTOS } from "@/lib/report-data"
 import { FileText, Car, Building2, AlertCircle } from "lucide-react"
 
 interface HeaderSectionProps {
@@ -48,6 +48,24 @@ export function HeaderSection({ data, onChange }: HeaderSectionProps) {
                   onChange={(e) => handleChange("sinistro", e.target.value)}
                   placeholder="Número do sinistro"
                 />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="tipoCliente">Tipo de Cliente</FieldLabel>
+                <Select
+                  value={data.tipoCliente}
+                  onValueChange={(value) => handleChange("tipoCliente", value)}
+                >
+                  <SelectTrigger id="tipoCliente">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_CLIENTE.map((tipo) => (
+                      <SelectItem key={tipo} value={tipo}>
+                        {tipo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               <Field>
                 <FieldLabel htmlFor="regulador">Regulador</FieldLabel>
@@ -151,6 +169,44 @@ export function HeaderSection({ data, onChange }: HeaderSectionProps) {
                   placeholder="Nome da oficina"
                 />
               </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="tipoOficina">Tipo da Oficina</FieldLabel>
+                  <Select
+                    value={data.tipoOficina}
+                    onValueChange={(value) => handleChange("tipoOficina", value)}
+                  >
+                    <SelectTrigger id="tipoOficina">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIPOS_OFICINA.map((tipo) => (
+                        <SelectItem key={tipo} value={tipo}>
+                          {tipo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="credenciamento">Credenciamento</FieldLabel>
+                  <Select
+                    value={data.credenciamento}
+                    onValueChange={(value) => handleChange("credenciamento", value)}
+                  >
+                    <SelectTrigger id="credenciamento">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CREDENCIAMENTOS.map((cred) => (
+                        <SelectItem key={cred} value={cred}>
+                          {cred}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel htmlFor="data">Data</FieldLabel>
