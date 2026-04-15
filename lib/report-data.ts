@@ -40,6 +40,7 @@ export interface MaoDeObraItem {
   valorHora: number
   horas: number
   valor: number
+  descricao: string
 }
 
 export interface MaoDeObraGlosa {
@@ -118,14 +119,14 @@ export const emptyReportData: ReportData = {
   pecasGlosadas: [],
   maoDeObra: {
     deducao: [
-      { tipo: "servicos_gerais", label: "Serviços Gerais", valorHora: 0, horas: 0, valor: 0 },
-      { tipo: "pintura", label: "Pintura", valorHora: 0, horas: 0, valor: 0 },
-      { tipo: "recuperacao", label: "Recuperação", valorHora: 0, horas: 0, valor: 0 },
+      { tipo: "servicos_gerais", label: "Serviços Gerais", valorHora: 0, horas: 0, valor: 0, descricao: "" },
+      { tipo: "pintura", label: "Pintura", valorHora: 0, horas: 0, valor: 0, descricao: "" },
+      { tipo: "recuperacao", label: "Recuperação", valorHora: 0, horas: 0, valor: 0, descricao: "" },
     ],
     valorizacao: [
-      { tipo: "servicos_gerais", label: "Serviços Gerais", valorHora: 36, horas: 0, valor: 0 },
-      { tipo: "pintura", label: "Pintura", valorHora: 49, horas: 0, valor: 0 },
-      { tipo: "recuperacao", label: "Recuperação", valorHora: 45, horas: 0, valor: 0 },
+      { tipo: "servicos_gerais", label: "Serviços Gerais", valorHora: 36, horas: 0, valor: 0, descricao: "" },
+      { tipo: "pintura", label: "Pintura", valorHora: 49, horas: 0, valor: 0, descricao: "" },
+      { tipo: "recuperacao", label: "Recuperação", valorHora: 45, horas: 0, valor: 0, descricao: "" },
     ],
   },
   servicosTerceiros: {

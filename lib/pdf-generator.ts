@@ -426,6 +426,7 @@ export function generatePDF(data: ReportData) {
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>Descrição</th>
                   <th class="text-right">R$/h</th>
                   <th class="text-right">Horas</th>
                   <th class="text-right">Valor</th>
@@ -437,6 +438,7 @@ export function generatePDF(data: ReportData) {
                     (item) => `
                   <tr>
                     <td>${item.label}</td>
+                    <td>${item.descricao || "-"}</td>
                     <td class="text-right">${formatCurrency(item.valorHora)}</td>
                     <td class="text-right">${item.horas}h</td>
                     <td class="text-right">${formatCurrency(item.valor)}</td>
@@ -445,7 +447,7 @@ export function generatePDF(data: ReportData) {
                   )
                   .join("")}
                 <tr class="footer-row">
-                  <td colspan="2" class="text-right"><strong>Total:</strong></td>
+                  <td colspan="3" class="text-right"><strong>Total:</strong></td>
                   <td class="text-right"><strong>${totalHorasDeducao}h</strong></td>
                   <td class="text-right"><strong>${formatCurrency(totalMODeducao)}</strong></td>
                 </tr>
@@ -506,18 +508,43 @@ export function generatePDF(data: ReportData) {
           : ""
       }
 
-      <div class="summary-grid">
-        <div class="summary-box deducao">
-          <div class="summary-label">Total Deduções</div>
-          <div class="summary-value red">${formatCurrency(totalDeducoes)}</div>
+      <div class="section">
+        <div class="section-title">Resumo</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px;">
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
+            <p style="font-size: 10px; color: #666; margin-bottom: 8px; text-transform: uppercase;">Deduções</p>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #fecaca;">
+              <span style="font-size: 10px; color: #666;">Total Peça Deduzida</span>
+              <span style="font-size: 11px; font-weight: 600; color: #dc2626;">${formatCurrency(totalPecasLiquido)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #fecaca;">
+              <span style="font-size: 10px; color: #666;">Total M.O. Deduzida</span>
+              <span style="font-size: 11px; font-weight: 600; color: #dc2626;">${formatCurrency(totalMODeducao + data.servicosTerceiros.deducaoTotal)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0 0 0; margin-top: 4px; border-top: 2px solid #fecaca;">
+              <span style="font-size: 11px; font-weight: 700; color: #dc2626;">Total Deduções</span>
+              <span style="font-size: 13px; font-weight: 700; color: #dc2626;">${formatCurrency(totalDeducoes)}</span>
+            </div>
+          </div>
+          <div style="background: ${lightGreen}; border: 1px solid ${brandGreen}60; border-radius: 6px; padding: 12px;">
+            <p style="font-size: 10px; color: #666; margin-bottom: 8px; text-transform: uppercase;">Valorizações</p>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted ${brandGreen}60;">
+              <span style="font-size: 10px; color: #666;">Total M.O. Valorizada</span>
+              <span style="font-size: 11px; font-weight: 600; color: ${brandGreen};">${formatCurrency(totalMOValorizacao + data.servicosTerceiros.valorizacaoTotal)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted ${brandGreen}60;">
+              <span style="font-size: 10px; color: #666;">Peças Negociadas</span>
+              <span style="font-size: 11px; font-weight: 600; color: ${brandGreen};">${formatCurrency(totalPecasNegociado)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0 0 0; margin-top: 4px; border-top: 2px solid ${brandGreen}60;">
+              <span style="font-size: 11px; font-weight: 700; color: ${brandGreen};">Total Valorizações</span>
+              <span style="font-size: 13px; font-weight: 700; color: ${brandGreen};">${formatCurrency(totalValorizacoes)}</span>
+            </div>
+          </div>
         </div>
-        <div class="summary-box valorizacao">
-          <div class="summary-label">Total Valorizações</div>
-          <div class="summary-value green">${formatCurrency(totalValorizacoes)}</div>
-        </div>
-        <div class="summary-box saldo">
-          <div class="summary-label">Saldo Final</div>
-          <div class="summary-value ${saldoFinal >= 0 ? "green" : "red"}">${formatCurrency(saldoFinal)}</div>
+        <div style="background: ${saldoFinal >= 0 ? lightGreen : "#fef2f2"}; border: 2px solid ${saldoFinal >= 0 ? brandGreen : "#fecaca"}; border-radius: 8px; padding: 15px; text-align: center;">
+          <p style="font-size: 10px; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Saldo Final</p>
+          <p style="font-size: 24px; font-weight: 700; color: ${saldoFinal >= 0 ? brandGreen : "#dc2626"};">${formatCurrency(saldoFinal)}</p>
         </div>
       </div>
 

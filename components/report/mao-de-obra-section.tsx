@@ -36,13 +36,15 @@ export function MaoDeObraSection({
 
   const handleDeducaoChange = (
     tipo: MaoDeObraItem["tipo"],
-    field: "valorHora" | "horas",
-    value: number
+    field: "valorHora" | "horas" | "descricao",
+    value: number | string
   ) => {
     const updatedDeducao = data.deducao.map((item) => {
       if (item.tipo !== tipo) return item
       const updated = { ...item, [field]: value }
-      updated.valor = updated.valorHora * updated.horas
+      if (field !== "descricao") {
+        updated.valor = updated.valorHora * updated.horas
+      }
       return updated
     })
     onChange({ ...data, deducao: updatedDeducao })
@@ -81,16 +83,28 @@ export function MaoDeObraSection({
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>Tipo</TableHead>
-                <TableHead className="w-28 text-right">R$/h</TableHead>
-                <TableHead className="w-24 text-right">Horas</TableHead>
-                <TableHead className="w-32 text-right">Valor</TableHead>
+                <TableHead className="w-32">Tipo</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="w-24 text-right">R$/h</TableHead>
+                <TableHead className="w-20 text-right">Horas</TableHead>
+                <TableHead className="w-28 text-right">Valor</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.deducao.map((item) => (
                 <TableRow key={item.tipo}>
                   <TableCell className="font-medium">{item.label}</TableCell>
+                  <TableCell>
+                    <Input
+                      type="text"
+                      value={item.descricao}
+                      onChange={(e) =>
+                        handleDeducaoChange(item.tipo, "descricao", e.target.value)
+                      }
+                      placeholder="Descreva a dedução..."
+                      className="text-left"
+                    />
+                  </TableCell>
                   <TableCell>
                     <Input
                       type="number"
@@ -122,6 +136,7 @@ export function MaoDeObraSection({
             <TableFooter>
               <TableRow className="bg-red-50 dark:bg-red-950/30 font-semibold">
                 <TableCell>Total</TableCell>
+                <TableCell></TableCell>
                 <TableCell></TableCell>
                 <TableCell className="text-right">{totalHorasDeducao}h</TableCell>
                 <TableCell className="text-right text-red-600 dark:text-red-400">

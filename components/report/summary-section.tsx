@@ -65,6 +65,16 @@ export function SummarySection({ data }: SummarySectionProps) {
                 <span className="text-muted-foreground">Serviços Terceiros</span>
                 <span className="font-medium">{formatCurrency(totalServicosTerceirosDeducao)}</span>
               </div>
+              <div className="border-t border-red-200 pt-2 mt-2 dark:border-red-800 space-y-1">
+                <div className="flex justify-between text-red-600 dark:text-red-400">
+                  <span>Total Peça Deduzida</span>
+                  <span className="font-medium">{formatCurrency(totalPecasLiquido)}</span>
+                </div>
+                <div className="flex justify-between text-red-600 dark:text-red-400">
+                  <span>Total M.O. Deduzida</span>
+                  <span className="font-medium">{formatCurrency(totalMODeducao + totalServicosTerceirosDeducao)}</span>
+                </div>
+              </div>
               <div className="border-t border-red-200 pt-2 dark:border-red-800">
                 <div className="flex justify-between font-semibold text-red-700 dark:text-red-400">
                   <span>Total Deduções</span>
