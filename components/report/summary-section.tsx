@@ -1,0 +1,156 @@
+"use client"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type { ReportData } from "@/lib/report-data"
+import { Calculator, TrendingDown, TrendingUp, Minus } from "lucide-react"
+
+interface SummarySectionProps {
+  data: ReportData
+}
+
+export function SummarySection({ data }: SummarySectionProps) {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value)
+  }
+
+  // Calcular totais de peças
+  const totalPecasLiquido = data.pecasGlosadas.reduce((acc, peca) => acc + peca.valorLiquidoTotal, 0)
+  const totalPecasNegociado = data.pecasGlosadas.reduce(
+    (acc, peca) => acc + peca.valorLiquidoNegociado,
+    0
+  )
+
+  // Calcular totais de mão de obra
+  const totalMODeducao = data.maoDeObra.deducao.reduce((acc, item) => acc + item.valor, 0)
+  const totalMOValorizacao = data.maoDeObra.valorizacao.reduce((acc, item) => acc + item.valor, 0)
+
+  // Serviços de terceiros
+  const totalServicosTerceirosDeducao = data.servicosTerceiros.deducaoTotal
+  const totalServicosTerceirosValorizacao = data.servicosTerceiros.valorizacaoTotal
+
+  // Totais gerais
+  const totalDeducoes = totalPecasLiquido + totalMODeducao + totalServicosTerceirosDeducao
+  const totalValorizacoes = totalMOValorizacao + totalServicosTerceirosValorizacao
+  const saldoFinal = totalValorizacoes - totalDeducoes
+
+  return (
+    <Card className="border-l-4 border-l-slate-500">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Calculator className="h-5 w-5 text-slate-500" />
+          Resumo do Laudo
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Deduções */}
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/30">
+            <div className="mb-3 flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-red-500" />
+              <h4 className="font-semibold text-red-700 dark:text-red-400">Deduções</h4>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Peças Glosadas</span>
+                <span className="font-medium">{formatCurrency(totalPecasLiquido)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Mão de Obra</span>
+                <span className="font-medium">{formatCurrency(totalMODeducao)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Serviços Terceiros</span>
+                <span className="font-medium">{formatCurrency(totalServicosTerceirosDeducao)}</span>
+              </div>
+              <div className="border-t border-red-200 pt-2 dark:border-red-800">
+                <div className="flex justify-between font-semibold text-red-700 dark:text-red-400">
+                  <span>Total Deduções</span>
+                  <span>{formatCurrency(totalDeducoes)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Valorizações */}
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+            <div className="mb-3 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+              <h4 className="font-semibold text-green-700 dark:text-green-400">Valorizações</h4>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Peças Negociadas</span>
+                <span className="font-medium">{formatCurrency(totalPecasNegociado)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Mão de Obra</span>
+                <span className="font-medium">{formatCurrency(totalMOValorizacao)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Serviços Terceiros</span>
+                <span className="font-medium">{formatCurrency(totalServicosTerceirosValorizacao)}</span>
+              </div>
+              <div className="border-t border-green-200 pt-2 dark:border-green-800">
+                <div className="flex justify-between font-semibold text-green-700 dark:text-green-400">
+                  <span>Total Valorizações</span>
+                  <span>{formatCurrency(totalValorizacoes)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Saldo Final */}
+          <div
+            className={`rounded-lg border p-4 ${
+              saldoFinal >= 0
+                ? "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30"
+                : "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30"
+            }`}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <Minus className={`h-5 w-5 ${saldoFinal >= 0 ? "text-green-500" : "text-red-500"}`} />
+              <h4
+                className={`font-semibold ${
+                  saldoFinal >= 0
+                    ? "text-green-700 dark:text-green-400"
+                    : "text-red-700 dark:text-red-400"
+                }`}
+              >
+                Saldo Final
+              </h4>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Valorizações</span>
+                <span className="font-medium text-green-600">+{formatCurrency(totalValorizacoes)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Deduções</span>
+                <span className="font-medium text-red-600">-{formatCurrency(totalDeducoes)}</span>
+              </div>
+              <div
+                className={`border-t pt-2 ${
+                  saldoFinal >= 0 ? "border-green-200 dark:border-green-800" : "border-red-200 dark:border-red-800"
+                }`}
+              >
+                <div
+                  className={`flex justify-between text-xl font-bold ${
+                    saldoFinal >= 0
+                      ? "text-green-700 dark:text-green-400"
+                      : "text-red-700 dark:text-red-400"
+                  }`}
+                >
+                  <span>Resultado</span>
+                  <span>{formatCurrency(saldoFinal)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
