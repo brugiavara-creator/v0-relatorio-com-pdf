@@ -1,8 +1,11 @@
 import type { ReportData } from "./report-data"
-import jsPDF from "jspdf"
-import html2canvas from "html2canvas"
 
 export async function generatePDF(data: ReportData) {
+  // Importação dinâmica para evitar problemas com SSR
+  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+    import("jspdf"),
+    import("html2canvas"),
+  ])
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
