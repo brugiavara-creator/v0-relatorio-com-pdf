@@ -28,16 +28,16 @@ export default function ReportPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-20 items-center justify-between">
+          <div className="flex items-center gap-6">
             <img 
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" 
               alt="ControlExpert"
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
-            <div className="h-6 w-px bg-border" />
+            <div className="h-10 w-px bg-border" />
             <div>
-              <h1 className="text-lg font-semibold text-primary">Laudo de Reinspeção</h1>
+              <h1 className="text-2xl font-bold text-primary">LAUDO DE REINSPEÇÃO</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -62,7 +62,6 @@ export default function ReportPage() {
         <div className="space-y-8">
           {/* Informações Gerais */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Informações Gerais</h2>
             <HeaderSection
               data={reportData.header}
               onChange={(header) => setReportData({ ...reportData, header })}
@@ -71,7 +70,9 @@ export default function ReportPage() {
 
           {/* Glosas de Peças */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Itens Glosados</h2>
+            <div className="mb-4 rounded-lg bg-primary px-4 py-3">
+              <h2 className="text-xl font-bold text-primary-foreground uppercase tracking-wide">GLOSAS DE PEÇAS</h2>
+            </div>
             <PecasSection
               data={reportData.pecasGlosadas}
               onChange={(pecasGlosadas) => setReportData({ ...reportData, pecasGlosadas })}
@@ -80,7 +81,9 @@ export default function ReportPage() {
 
           {/* Mão de Obra */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Mão de Obra</h2>
+            <div className="mb-4 rounded-lg bg-primary px-4 py-3">
+              <h2 className="text-xl font-bold text-primary-foreground uppercase tracking-wide">GLOSAS DE MÃO DE OBRA</h2>
+            </div>
             <MaoDeObraSection
               data={reportData.maoDeObra}
               servicosTerceiros={reportData.servicosTerceiros}
@@ -93,7 +96,9 @@ export default function ReportPage() {
 
           {/* Observações */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Observações</h2>
+            <div className="mb-4 rounded-lg bg-muted px-4 py-3">
+              <h2 className="text-xl font-bold text-foreground uppercase tracking-wide">OBSERVAÇÕES</h2>
+            </div>
             <ObservacaoSection
               value={reportData.observacao}
               onChange={(observacao) => setReportData({ ...reportData, observacao })}
@@ -102,8 +107,14 @@ export default function ReportPage() {
 
           {/* Resumo */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Resumo</h2>
-            <SummarySection data={reportData} />
+            <div className="mb-4 rounded-lg bg-primary px-4 py-3">
+              <h2 className="text-xl font-bold text-primary-foreground uppercase tracking-wide">RESUMO</h2>
+            </div>
+            <SummarySection 
+              data={reportData} 
+              onOrcamentoChange={(valorInicialOrcamento) => setReportData({ ...reportData, valorInicialOrcamento })}
+              onFranquiaChange={(franquia) => setReportData({ ...reportData, franquia })}
+            />
           </section>
         </div>
       </main>

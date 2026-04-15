@@ -168,12 +168,12 @@ export function MaoDeObraSection({
         </CardContent>
       </Card>
 
-      {/* Valorização de Mão de Obra */}
+      {/* Inclusão de Mão de Obra */}
       <Card className="border-l-4 border-l-green-500">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5 text-green-500" />
-            Valorização de Mão de Obra
+            Inclusão de Mão de Obra
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -230,10 +230,10 @@ export function MaoDeObraSection({
             </TableFooter>
           </Table>
 
-          {/* Valorização Serviços de Terceiros */}
+          {/* Inclusão Serviços de Terceiros */}
           <div className="mt-4 rounded-lg border bg-muted/30 p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Valorização Serviços de Terceiros</span>
+              <span className="text-sm font-medium">Inclusão Serviços de Terceiros</span>
               <Input
                 type="number"
                 step="0.01"

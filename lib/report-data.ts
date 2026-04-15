@@ -60,6 +60,8 @@ export interface ReportData {
   maoDeObra: MaoDeObraGlosa
   servicosTerceiros: ServicosTerceiros
   observacao: string
+  valorInicialOrcamento: number
+  franquia: number
 }
 
 export const AGENTES_CAUSA = [
@@ -136,4 +138,6 @@ export const emptyReportData: ReportData = {
     deducaoTotal: 0,
   },
   observacao: "",
+  valorInicialOrcamento: 0,
+  franquia: 0,
 }
