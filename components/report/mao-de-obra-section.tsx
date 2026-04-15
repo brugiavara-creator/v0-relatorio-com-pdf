@@ -85,9 +85,9 @@ export function MaoDeObraSection({
               <TableRow className="bg-muted/50">
                 <TableHead className="w-32">Tipo</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead className="w-24 text-right">R$/h</TableHead>
-                <TableHead className="w-20 text-right">Horas</TableHead>
-                <TableHead className="w-28 text-right">Valor</TableHead>
+                <TableHead className="w-24 text-right">R$/hora</TableHead>
+                <TableHead className="w-20 text-right">Horas (h)</TableHead>
+                <TableHead className="w-28 text-right">Valor (R$)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,9 +181,9 @@ export function MaoDeObraSection({
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead>Tipo</TableHead>
-                <TableHead className="w-28 text-right">R$/h</TableHead>
-                <TableHead className="w-24 text-right">Horas</TableHead>
-                <TableHead className="w-32 text-right">Valor</TableHead>
+                <TableHead className="w-28 text-right">R$/hora</TableHead>
+                <TableHead className="w-24 text-right">Horas (h)</TableHead>
+                <TableHead className="w-32 text-right">Valor (R$)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

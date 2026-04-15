@@ -607,9 +607,9 @@ export function generatePDF(data: ReportData) {
             <span style="font-size: 10px; color: #666;">(+) Total Inclusões</span>
             <span style="font-size: 12px; font-weight: 600; color: ${brandGreen};">+${formatCurrency(totalInclusoes)}</span>
           </div>
-          <div style="text-align: center;">
-            <p style="font-size: 10px; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">TOTAL FINAL</p>
-            <p style="font-size: 28px; font-weight: 700; color: ${saldoFinal >= 0 ? brandGreen : "#dc2626"};">${formatCurrency(saldoFinal)}</p>
+          <div style="background: ${brandBlue}; border-radius: 6px; padding: 15px; margin-top: 10px;">
+            <p style="font-size: 12px; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; text-align: center;">TOTAL FINAL</p>
+            <p style="font-size: 32px; font-weight: 700; color: #fff; text-align: center;">${formatCurrency(saldoFinal)}</p>
           </div>
         </div>
       </div>

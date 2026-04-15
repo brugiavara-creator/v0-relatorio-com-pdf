@@ -97,10 +97,10 @@ export function PecasSection({ data, onChange }: PecasSectionProps) {
                 <TableHead className="w-16">Qtde</TableHead>
                 <TableHead className="w-32">Código</TableHead>
                 <TableHead className="min-w-48">Descrição</TableHead>
-                <TableHead className="w-32 text-right">Valor Bruto Unit.</TableHead>
-                <TableHead className="w-24 text-right">Desconto %</TableHead>
-                <TableHead className="w-32 text-right">Valor Líquido</TableHead>
-                <TableHead className="w-32 text-right">Valor Negociado</TableHead>
+                <TableHead className="w-32 text-right">Valor Bruto Unit. (R$)</TableHead>
+                <TableHead className="w-24 text-right">Desconto (%)</TableHead>
+                <TableHead className="w-32 text-right">Valor Líquido (R$)</TableHead>
+                <TableHead className="w-32 text-right">Valor Negociado (R$)</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>

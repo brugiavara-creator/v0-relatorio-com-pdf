@@ -58,10 +58,10 @@ export function SummarySection({ data, onOrcamentoChange, onFranquiaChange }: Su
         <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border bg-blue-50 p-4 dark:bg-blue-950/30">
             <Label htmlFor="valorOrcamento" className="text-sm font-medium text-blue-700 dark:text-blue-400">
-              Valor Inicial Orçamento / Total Geral
+              Valor Inicial Orçamento / Total Geral (R$)
             </Label>
             <div className="mt-2 flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-blue-500" />
+              <span className="text-sm font-medium text-blue-600">R$</span>
               <Input
                 id="valorOrcamento"
                 type="number"
@@ -76,10 +76,10 @@ export function SummarySection({ data, onOrcamentoChange, onFranquiaChange }: Su
           </div>
           <div className="rounded-lg border bg-orange-50 p-4 dark:bg-orange-950/30">
             <Label htmlFor="franquia" className="text-sm font-medium text-orange-700 dark:text-orange-400">
-              Franquia
+              Franquia (R$)
             </Label>
             <div className="mt-2 flex items-center gap-2">
-              <Minus className="h-4 w-4 text-orange-500" />
+              <span className="text-sm font-medium text-orange-600">R$</span>
               <Input
                 id="franquia"
                 type="number"
