@@ -1,28 +1,26 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import Link from "next/link"
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
+  CartesianGrid,
 } from "recharts"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -32,21 +30,42 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import {
   FileText,
   TrendingDown,
   TrendingUp,
   DollarSign,
-  BarChart3,
-  PieChartIcon,
   ArrowLeft,
   RefreshCw,
   Upload,
   Filter,
   X,
+  Search,
   Building2,
-  Car,
+  Calendar,
   MapPin,
+  Users,
+  Car,
 } from "lucide-react"
+
+const CHART_COLORS = [
+  "#0066a1",
+  "#5a9a7a", 
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
+  "#14b8a6",
+  "#f97316",
+  "#6366f1",
+  "#84cc16",
+  "#06b6d4",
+]
+
+const MESES_NOMES = ["", "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 
 interface DashboardData {
   metricas: {
@@ -60,18 +79,13 @@ interface DashboardData {
     totalSavingMO: number
     totalSavingReal: number
     totalSavingPotencial: number
-    mediaDeducao: number
-    mediaInclusao: number
   }
   seguradoras: Array<{ nome: string; quantidade: number }>
   agentesCausa: Array<{ nome: string; quantidade: number }>
   motivos: Array<{ nome: string; quantidade: number }>
   tiposOficina: Array<{ nome: string; quantidade: number }>
-  tiposCliente: Array<{ nome: string; quantidade: number }>
-  credenciamentos: Array<{ nome: string; quantidade: number }>
   ufs: Array<{ nome: string; quantidade: number }>
-  houveAjustes: Array<{ nome: string; quantidade: number }>
-  evolucaoMensal: Array<{ mes: string; laudos: number; deducoes: number; inclusoes: number; savingPecas: number; savingMO: number }>
+  evolucaoMensal: Array<{ mes: string; laudos: number; savingPecas: number; savingMO: number }>
   ultimosLaudos: Array<{
     id: string
     seguradora: string
@@ -79,23 +93,12 @@ interface DashboardData {
     placa: string
     modelo: string
     oficina: string
-    tipoOficina: string
-    credenciamento: string
-    tipoCliente: string
     uf: string
     agenteCausa: string
     motivo: string
-    valorOrcamento: number
     savingPecas: number
     savingMO: number
-    totalDeducoes: number
-    totalInclusoes: number
     saldoFinal: number
-    houveAjuste: string
-    dataInspecao: string
-    mes: number
-    ano: number
-    createdAt: string
   }>
   filtros: {
     seguradoras: string[]
@@ -124,21 +127,82 @@ interface Filters {
   houve_ajuste: string
 }
 
-const COLORS = ["#0066a1", "#5a9a7a", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16", "#14b8a6", "#f97316"]
-
-const MESES_NOMES = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value)
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value || 0)
+}
+
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat("pt-BR").format(value || 0)
+}
+
+function MetricCard({ 
+  title, 
+  value, 
+  subtitle,
+  icon: Icon, 
+  color = "blue",
+  isLoading = false 
+}: { 
+  title: string
+  value: string
+  subtitle?: string
+  icon: React.ElementType
+  color?: "blue" | "green" | "orange" | "red" | "purple"
+  isLoading?: boolean
+}) {
+  const styles = {
+    blue: { bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800", icon: "text-blue-600 bg-blue-100 dark:bg-blue-900", text: "text-blue-700" },
+    green: { bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800", icon: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900", text: "text-emerald-700" },
+    orange: { bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800", icon: "text-amber-600 bg-amber-100 dark:bg-amber-900", text: "text-amber-700" },
+    red: { bg: "bg-red-50 dark:bg-red-950/30", border: "border-red-200 dark:border-red-800", icon: "text-red-600 bg-red-100 dark:bg-red-900", text: "text-red-700" },
+    purple: { bg: "bg-purple-50 dark:bg-purple-950/30", border: "border-purple-200 dark:border-purple-800", icon: "text-purple-600 bg-purple-100 dark:bg-purple-900", text: "text-purple-700" },
+  }
+
+  const s = styles[color]
+
+  if (isLoading) {
+    return (
+      <Card className={`${s.bg} ${s.border} border`}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-lg" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-6 w-28" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className={`${s.bg} ${s.border} border transition-all hover:shadow-md`}>
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-lg ${s.icon}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide truncate">{title}</p>
+            <p className={`text-xl font-bold ${s.text} truncate`}>{value}</p>
+            {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
   const [filters, setFilters] = useState<Filters>({
     seguradora: "",
     mes: "",
@@ -151,24 +215,21 @@ export default function DashboardPage() {
     uf: "",
     houve_ajuste: "",
   })
-  const [showFilters, setShowFilters] = useState(true)
+
+  const activeFiltersCount = Object.values(filters).filter(Boolean).length
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    setError(null)
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.append(key, value)
       })
-      
       const response = await fetch(`/api/dashboard?${params.toString()}`)
-      if (!response.ok) throw new Error("Erro ao carregar dados")
       const result = await response.json()
       setData(result)
     } catch (err) {
-      setError("Erro ao carregar dados do dashboard")
-      console.error(err)
+      console.error("Erro ao carregar dados:", err)
     } finally {
       setLoading(false)
     }
@@ -178,665 +239,315 @@ export default function DashboardPage() {
     fetchData()
   }, [fetchData])
 
-  const handleFilterChange = (key: keyof Filters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }))
-  }
-
   const clearFilters = () => {
     setFilters({
-      seguradora: "",
-      mes: "",
-      ano: "",
-      motivo: "",
-      agente_causa: "",
-      tipo_oficina: "",
-      credenciamento: "",
-      tipo_cliente: "",
-      uf: "",
-      houve_ajuste: "",
+      seguradora: "", mes: "", ano: "", motivo: "", agente_causa: "",
+      tipo_oficina: "", credenciamento: "", tipo_cliente: "", uf: "", houve_ajuste: "",
     })
   }
 
-  const activeFiltersCount = Object.values(filters).filter(Boolean).length
-
-  if (loading && !data) {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-          <div className="container flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png"
-                alt="ControlExpert"
-                className="h-10 w-auto"
-              />
-              <div className="h-8 w-px bg-border" />
-              <h1 className="text-xl font-bold text-primary">DASHBOARD DE INDICADORES</h1>
-            </div>
-          </div>
-        </header>
-        <main className="container py-8">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="h-32" />
-            ))}
-          </div>
-        </main>
-      </div>
+  const filteredLaudos = useMemo(() => {
+    if (!data?.ultimosLaudos) return []
+    if (!searchTerm) return data.ultimosLaudos
+    const term = searchTerm.toLowerCase()
+    return data.ultimosLaudos.filter(l => 
+      l.sinistro?.toLowerCase().includes(term) ||
+      l.placa?.toLowerCase().includes(term) ||
+      l.oficina?.toLowerCase().includes(term)
     )
-  }
+  }, [data?.ultimosLaudos, searchTerm])
 
-  if (error && !data) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle className="text-red-600">Erro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchData}>Tentar novamente</Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const chartSeguradora = useMemo(() => 
+    (data?.seguradoras || []).map((item, i) => ({
+      name: item.nome || "N/A",
+      total: item.quantidade,
+      fill: CHART_COLORS[i % CHART_COLORS.length],
+    })), [data?.seguradoras])
+
+  const chartMotivo = useMemo(() => 
+    (data?.motivos || []).slice(0, 8).map((item, i) => ({
+      name: item.nome?.substring(0, 25) || "N/A",
+      value: item.quantidade,
+      fill: CHART_COLORS[i % CHART_COLORS.length],
+    })), [data?.motivos])
+
+  const chartUF = useMemo(() => 
+    (data?.ufs || []).slice(0, 10).map((item, i) => ({
+      name: item.nome || "N/A",
+      total: item.quantidade,
+      fill: CHART_COLORS[i % CHART_COLORS.length],
+    })), [data?.ufs])
+
+  const chartMensal = useMemo(() => 
+    (data?.evolucaoMensal || []).map(item => ({
+      name: item.mes,
+      laudos: item.laudos,
+    })), [data?.evolucaoMensal])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png"
-              alt="ControlExpert"
-              className="h-10 w-auto"
-            />
-            <div className="h-8 w-px bg-border" />
-            <h1 className="text-xl font-bold text-primary">DASHBOARD DE INDICADORES</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={showFilters ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filtros
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-            <Link href="/import">
-              <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                Importar
+      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img 
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" 
+                alt="ControlExpert"
+                className="h-8 w-auto"
+              />
+              <div className="hidden sm:block h-6 w-px bg-border" />
+              <h1 className="hidden sm:block text-lg font-semibold">Dashboard</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/import">
+                <Button variant="ghost" size="sm" className="h-8 px-3 text-xs">
+                  <Upload className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="hidden sm:inline">Importar</span>
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={fetchData} className="h-8 px-3 text-xs">
+                <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Atualizar</span>
               </Button>
-            </Link>
-            <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              Atualizar
-            </Button>
-            <Link href="/">
-              <Button size="sm" className="bg-primary hover:bg-primary/90">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
-              </Button>
-            </Link>
+              <Link href="/">
+                <Button size="sm" className="h-8 px-3 text-xs bg-primary">
+                  <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                  Novo Laudo
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container py-6">
-        {/* Filtros */}
-        {showFilters && data?.filtros && (
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filtros
-                </CardTitle>
-                {activeFiltersCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <X className="mr-2 h-4 w-4" />
-                    Limpar filtros
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Filtros Compactos */}
+        <Card className="border-dashed bg-card/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filtros</span>
+              {activeFiltersCount > 0 && (
+                <>
+                  <Badge variant="secondary" className="text-[10px] h-5">{activeFiltersCount}</Badge>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 px-2 text-[10px] ml-auto">
+                    <X className="h-3 w-3 mr-1" />Limpar
                   </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-                {/* Seguradora */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Seguradora</Label>
-                  <Select value={filters.seguradora} onValueChange={(v) => handleFilterChange("seguradora", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
-                      {data.filtros.seguradoras.map((seg) => (
-                        <SelectItem key={seg} value={seg}>{seg}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                </>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              <Select value={filters.seguradora} onValueChange={(v) => setFilters(f => ({ ...f, seguradora: v }))}>
+                <SelectTrigger className="h-8 text-xs"><Building2 className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Seguradora" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas</SelectItem>
+                  {(data?.filtros?.seguradoras || []).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filters.ano} onValueChange={(v) => setFilters(f => ({ ...f, ano: v }))}>
+                <SelectTrigger className="h-8 text-xs"><Calendar className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Ano" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {(data?.filtros?.anos || []).map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filters.mes} onValueChange={(v) => setFilters(f => ({ ...f, mes: v }))}>
+                <SelectTrigger className="h-8 text-xs"><Calendar className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Mes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {(data?.filtros?.meses || []).map(m => <SelectItem key={m} value={String(m)}>{MESES_NOMES[m]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filters.uf} onValueChange={(v) => setFilters(f => ({ ...f, uf: v }))}>
+                <SelectTrigger className="h-8 text-xs"><MapPin className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="UF" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {(data?.filtros?.ufs || []).map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filters.agente_causa} onValueChange={(v) => setFilters(f => ({ ...f, agente_causa: v }))}>
+                <SelectTrigger className="h-8 text-xs"><Users className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Agente" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {(data?.filtros?.agentesCausa || []).map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filters.tipo_oficina} onValueChange={(v) => setFilters(f => ({ ...f, tipo_oficina: v }))}>
+                <SelectTrigger className="h-8 text-xs"><Car className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Oficina" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {(data?.filtros?.tiposOficina || []).map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-                {/* Ano */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Ano</Label>
-                  <Select value={filters.ano} onValueChange={(v) => handleFilterChange("ano", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.anos.map((ano) => (
-                        <SelectItem key={ano} value={String(ano)}>{ano}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Mês */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Mes</Label>
-                  <Select value={filters.mes} onValueChange={(v) => handleFilterChange("mes", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.meses.map((mes) => (
-                        <SelectItem key={mes} value={String(mes)}>{MESES_NOMES[mes]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* UF */}
-                <div className="space-y-1">
-                  <Label className="text-xs">UF</Label>
-                  <Select value={filters.uf} onValueChange={(v) => handleFilterChange("uf", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.ufs.map((uf) => (
-                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Tipo Oficina */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Tipo Oficina</Label>
-                  <Select value={filters.tipo_oficina} onValueChange={(v) => handleFilterChange("tipo_oficina", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.tiposOficina.map((tipo) => (
-                        <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Credenciamento */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Credenciamento</Label>
-                  <Select value={filters.credenciamento} onValueChange={(v) => handleFilterChange("credenciamento", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.credenciamentos.map((cred) => (
-                        <SelectItem key={cred} value={cred}>{cred}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Tipo Cliente */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Tipo Cliente</Label>
-                  <Select value={filters.tipo_cliente} onValueChange={(v) => handleFilterChange("tipo_cliente", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.tiposCliente.map((tipo) => (
-                        <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Agente Causa */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Agente Causa</Label>
-                  <Select value={filters.agente_causa} onValueChange={(v) => handleFilterChange("agente_causa", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.agentesCausa.map((agente) => (
-                        <SelectItem key={agente} value={agente}>{agente}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Houve Ajuste */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Houve Ajuste</Label>
-                  <Select value={filters.houve_ajuste} onValueChange={(v) => handleFilterChange("houve_ajuste", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.houveAjustes.map((ajuste) => (
-                        <SelectItem key={ajuste} value={ajuste}>{ajuste}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Motivo */}
-                <div className="space-y-1">
-                  <Label className="text-xs">Motivo</Label>
-                  <Select value={filters.motivo} onValueChange={(v) => handleFilterChange("motivo", v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
-                      {data.filtros.motivos.slice(0, 20).map((motivo) => (
-                        <SelectItem key={motivo} value={motivo}>{motivo.substring(0, 50)}{motivo.length > 50 ? "..." : ""}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Métricas Principais */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card className="border-l-4 border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Laudos</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{data?.metricas.totalLaudos || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">laudos registrados</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Saving Pecas</CardTitle>
-              <Car className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(data?.metricas.totalSavingPecas || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">economia em pecas</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-purple-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Saving MO</CardTitle>
-              <Building2 className="h-4 w-4 text-purple-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {formatCurrency(data?.metricas.totalSavingMO || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">economia em mao de obra</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-green-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Saving</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency((data?.metricas.totalSavingPecas || 0) + (data?.metricas.totalSavingMO || 0))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">economia total</p>
-            </CardContent>
-          </Card>
+        {/* KPIs - 2 rows of 4 */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <MetricCard title="Total Laudos" value={formatNumber(data?.metricas?.totalLaudos || 0)} icon={FileText} color="blue" isLoading={loading} />
+          <MetricCard title="Saving Pecas" value={formatCurrency(data?.metricas?.totalSavingPecas || 0)} icon={Car} color="green" isLoading={loading} />
+          <MetricCard title="Saving M.O." value={formatCurrency(data?.metricas?.totalSavingMO || 0)} icon={Building2} color="purple" isLoading={loading} />
+          <MetricCard title="Total Saving" value={formatCurrency((data?.metricas?.totalSavingPecas || 0) + (data?.metricas?.totalSavingMO || 0))} icon={TrendingUp} color="green" isLoading={loading} />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <MetricCard title="Total Deducoes" value={formatCurrency(data?.metricas?.totalDeducoes || 0)} icon={TrendingDown} color="red" isLoading={loading} />
+          <MetricCard title="Total Inclusoes" value={formatCurrency(data?.metricas?.totalInclusoes || 0)} icon={TrendingUp} color="green" isLoading={loading} />
+          <MetricCard title="Total Orcamento" value={formatCurrency(data?.metricas?.totalOrcamento || 0)} icon={DollarSign} color="blue" isLoading={loading} />
+          <MetricCard title="Saldo Final" value={formatCurrency(data?.metricas?.totalSaldo || 0)} icon={DollarSign} color={(data?.metricas?.totalSaldo || 0) >= 0 ? "green" : "red"} isLoading={loading} />
         </div>
 
-        {/* Segunda linha de métricas */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card className="border-l-4 border-l-red-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Deducoes</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(data?.metricas.totalDeducoes || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Media: {formatCurrency(data?.metricas.mediaDeducao || 0)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-emerald-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Inclusoes</CardTitle>
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">
-                {formatCurrency(data?.metricas.totalInclusoes || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Media: {formatCurrency(data?.metricas.mediaInclusao || 0)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-amber-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Valor Orcamento</CardTitle>
-              <DollarSign className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-amber-600">
-                {formatCurrency(data?.metricas.totalOrcamento || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">valor total orcado</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-cyan-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Final</CardTitle>
-              <MapPin className="h-4 w-4 text-cyan-500" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${(data?.metricas.totalSaldo || 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {formatCurrency(data?.metricas.totalSaldo || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">resultado acumulado</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Gráficos */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-6">
-          {/* Por Seguradora */}
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Seguradora */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Por Seguradora
-              </CardTitle>
+            <CardHeader className="pb-2 px-4 pt-4">
+              <CardTitle className="text-sm font-medium">Por Seguradora</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data?.seguradoras || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="nome" tick={{ fontSize: 10 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="quantidade" fill="#0066a1" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Por Agente da Causa */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Por Agente da Causa
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data?.agentesCausa || []} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="nome" type="category" width={100} tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Bar dataKey="quantidade" fill="#5a9a7a" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Por Motivo */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5 text-primary" />
-                Top 15 Motivos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data?.motivos || []}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ""}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="quantidade"
-                      nameKey="nome"
-                    >
-                      {(data?.motivos || []).map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value, name) => [value, name]} />
-                    <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: "9px" }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Por UF */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Por UF
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={(data?.ufs || []).slice(0, 10)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="nome" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="quantidade" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Distribuição */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribuicao por Categoria</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Tipo de Oficina</h4>
-                  <div className="space-y-2">
-                    {(data?.tiposOficina || []).map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-xs truncate max-w-24">{item.nome}</span>
-                        <Badge variant="secondary">{item.quantidade}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Tipo de Cliente</h4>
-                  <div className="space-y-2">
-                    {(data?.tiposCliente || []).map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-xs truncate max-w-24">{item.nome}</span>
-                        <Badge variant="secondary">{item.quantidade}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Credenciamento</h4>
-                  <div className="space-y-2">
-                    {(data?.credenciamentos || []).map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-xs truncate max-w-24">{item.nome}</span>
-                        <Badge variant="secondary">{item.quantidade}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Houve Ajuste</h4>
-                  <div className="space-y-2">
-                    {(data?.houveAjustes || []).map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-xs">{item.nome}</span>
-                        <Badge variant={item.nome === "SIM" ? "default" : "secondary"}>{item.quantidade}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Evolução Mensal */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Evolucao Mensal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                {(data?.evolucaoMensal || []).length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data?.evolucaoMensal}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip formatter={(value: number, name: string) => [
-                        name === "laudos" ? value : formatCurrency(value),
-                        name === "laudos" ? "Laudos" : name === "savingPecas" ? "Saving Pecas" : "Saving MO"
-                      ]} />
-                      <Legend />
-                      <Line yAxisId="left" type="monotone" dataKey="laudos" stroke="#0066a1" strokeWidth={2} name="Laudos" />
-                      <Line yAxisId="right" type="monotone" dataKey="savingPecas" stroke="#5a9a7a" strokeWidth={2} name="Saving Pecas" />
-                      <Line yAxisId="right" type="monotone" dataKey="savingMO" stroke="#f59e0b" strokeWidth={2} name="Saving MO" />
-                    </LineChart>
+            <CardContent className="px-4 pb-4">
+              {loading ? <Skeleton className="h-[200px]" /> : (
+                <ChartContainer config={{}} className="h-[200px] w-full">
+                  <ResponsiveContainer>
+                    <BarChart data={chartSeguradora} layout="vertical" margin={{ left: 0, right: 16 }}>
+                      <XAxis type="number" fontSize={10} tickFormatter={formatNumber} />
+                      <YAxis type="category" dataKey="name" fontSize={10} width={90} tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                        {chartSeguradora.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">Sem dados</div>
-                )}
-              </div>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* UF */}
+          <Card>
+            <CardHeader className="pb-2 px-4 pt-4">
+              <CardTitle className="text-sm font-medium">Top 10 UFs</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              {loading ? <Skeleton className="h-[200px]" /> : (
+                <ChartContainer config={{}} className="h-[200px] w-full">
+                  <ResponsiveContainer>
+                    <BarChart data={chartUF} margin={{ left: 0, right: 16 }}>
+                      <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} />
+                      <YAxis fontSize={10} tickFormatter={formatNumber} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                        {chartUF.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Motivos */}
+          <Card>
+            <CardHeader className="pb-2 px-4 pt-4">
+              <CardTitle className="text-sm font-medium">Top Motivos</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              {loading ? <Skeleton className="h-[200px]" /> : (
+                <ChartContainer config={{}} className="h-[200px] w-full">
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={chartMotivo} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={2} dataKey="value">
+                        {chartMotivo.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Evolucao Mensal */}
+          <Card>
+            <CardHeader className="pb-2 px-4 pt-4">
+              <CardTitle className="text-sm font-medium">Evolucao Mensal</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              {loading ? <Skeleton className="h-[200px]" /> : (
+                <ChartContainer config={{}} className="h-[200px] w-full">
+                  <ResponsiveContainer>
+                    <AreaChart data={chartMensal} margin={{ left: 0, right: 16 }}>
+                      <defs>
+                        <linearGradient id="colorLaudos" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0066a1" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#0066a1" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="name" fontSize={10} tickLine={false} />
+                      <YAxis fontSize={10} tickFormatter={formatNumber} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Area type="monotone" dataKey="laudos" stroke="#0066a1" fillOpacity={1} fill="url(#colorLaudos)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabela de Laudos */}
+        {/* Tabela */}
         <Card>
-          <CardHeader>
-            <CardTitle>Laudos Registrados</CardTitle>
-            <CardDescription>Ultimos 50 laudos {activeFiltersCount > 0 ? "(filtrados)" : ""}</CardDescription>
+          <CardHeader className="pb-3 px-4 pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <CardTitle className="text-sm font-medium">Ultimos Laudos</CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8 h-8 text-xs" />
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            {(data?.ultimosLaudos || []).length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">Seguradora</TableHead>
-                      <TableHead className="text-xs">Sinistro</TableHead>
-                      <TableHead className="text-xs">Placa</TableHead>
-                      <TableHead className="text-xs">UF</TableHead>
-                      <TableHead className="text-xs">Oficina</TableHead>
-                      <TableHead className="text-xs">Tipo</TableHead>
-                      <TableHead className="text-xs">Agente</TableHead>
-                      <TableHead className="text-xs text-right">Orcamento</TableHead>
-                      <TableHead className="text-xs text-right">Saving Pecas</TableHead>
-                      <TableHead className="text-xs text-right">Saving MO</TableHead>
-                      <TableHead className="text-xs">Ajuste</TableHead>
-                      <TableHead className="text-xs">Data</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data?.ultimosLaudos.map((laudo) => (
-                      <TableRow key={laudo.id}>
-                        <TableCell className="text-xs font-medium">{laudo.seguradora || "-"}</TableCell>
-                        <TableCell className="text-xs">{laudo.sinistro || "-"}</TableCell>
-                        <TableCell className="text-xs">{laudo.placa || "-"}</TableCell>
-                        <TableCell className="text-xs">{laudo.uf || "-"}</TableCell>
-                        <TableCell className="text-xs max-w-24 truncate">{laudo.oficina || "-"}</TableCell>
-                        <TableCell className="text-xs">{laudo.tipoOficina || "-"}</TableCell>
-                        <TableCell className="text-xs">{laudo.agenteCausa || "-"}</TableCell>
-                        <TableCell className="text-xs text-right">{formatCurrency(laudo.valorOrcamento || 0)}</TableCell>
-                        <TableCell className="text-xs text-right text-blue-600">{formatCurrency(laudo.savingPecas || 0)}</TableCell>
-                        <TableCell className="text-xs text-right text-purple-600">{formatCurrency(laudo.savingMO || 0)}</TableCell>
-                        <TableCell className="text-xs">
-                          <Badge variant={laudo.houveAjuste === "SIM" ? "default" : "secondary"} className="text-xs">
-                            {laudo.houveAjuste || "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          {laudo.dataInspecao ? new Date(laudo.dataInspecao).toLocaleDateString("pt-BR") : 
-                           laudo.mes && laudo.ano ? `${laudo.mes}/${laudo.ano}` : "-"}
-                        </TableCell>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-[11px] font-medium h-9">Seguradora</TableHead>
+                    <TableHead className="text-[11px] font-medium h-9">Sinistro</TableHead>
+                    <TableHead className="text-[11px] font-medium h-9">Placa</TableHead>
+                    <TableHead className="text-[11px] font-medium h-9">Oficina</TableHead>
+                    <TableHead className="text-[11px] font-medium h-9">Agente</TableHead>
+                    <TableHead className="text-[11px] font-medium h-9">UF</TableHead>
+                    <TableHead className="text-[11px] font-medium h-9 text-right">Saving</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 7 }).map((_, j) => <TableCell key={j} className="py-2"><Skeleton className="h-4 w-full" /></TableCell>)}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum laudo encontrado. {activeFiltersCount > 0 ? "Tente ajustar os filtros." : "Importe dados para ver os resultados."}
-              </div>
-            )}
+                    ))
+                  ) : filteredLaudos.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground text-sm">Nenhum laudo encontrado</TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredLaudos.slice(0, 30).map((l) => (
+                      <TableRow key={l.id} className="text-[11px]">
+                        <TableCell className="py-2"><Badge variant="outline" className="text-[9px] font-normal">{l.seguradora || "-"}</Badge></TableCell>
+                        <TableCell className="py-2 font-mono">{l.sinistro || "-"}</TableCell>
+                        <TableCell className="py-2 font-mono">{l.placa || "-"}</TableCell>
+                        <TableCell className="py-2 max-w-[120px] truncate">{l.oficina || "-"}</TableCell>
+                        <TableCell className="py-2">{l.agenteCausa || "-"}</TableCell>
+                        <TableCell className="py-2">{l.uf || "-"}</TableCell>
+                        <TableCell className="py-2 text-right font-medium text-emerald-600">{formatCurrency((l.savingPecas || 0) + (l.savingMO || 0))}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </main>
