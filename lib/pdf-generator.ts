@@ -30,15 +30,20 @@ export function generatePDF(data: ReportData) {
   const totalHorasDeducao = data.maoDeObra.deducao.reduce((acc, item) => acc + item.horas, 0)
   const totalHorasValorizacao = data.maoDeObra.valorizacao.reduce((acc, item) => acc + item.horas, 0)
   const totalDeducoes = totalPecasLiquido + totalMODeducao + data.servicosTerceiros.deducaoTotal
-  const totalValorizacoes = totalMOValorizacao + data.servicosTerceiros.valorizacaoTotal
-  const saldoFinal = totalValorizacoes - totalDeducoes
+  const totalInclusoes = totalMOValorizacao + data.servicosTerceiros.valorizacaoTotal + totalPecasNegociado
+  
+  // Orçamento e Franquia
+  const valorInicialOrcamento = data.valorInicialOrcamento || 0
+  const franquia = data.franquia || 0
+  const valorAposFranquia = valorInicialOrcamento - franquia
+  const saldoFinal = valorAposFranquia - totalDeducoes + totalInclusoes
 
   const html = `
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
       <meta charset="UTF-8">
-      <title>Laudo de Reinspeção - ${data.header.sinistro || "Sem número"}</title>
+      <title>Laudo de Monitoria - ${data.header.sinistro || "Sem número"}</title>
       <style>
         * {
           margin: 0;
@@ -88,16 +93,20 @@ export function generatePDF(data: ReportData) {
           margin-bottom: 20px;
         }
         .section-title {
-          font-size: 12px;
-          font-weight: 600;
+          font-size: 14px;
+          font-weight: 700;
           color: #fff;
           background: ${brandBlue};
-          padding: 8px 12px;
-          margin-bottom: 12px;
-          border-radius: 4px;
+          padding: 12px 16px;
+          margin-bottom: 15px;
+          border-radius: 6px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          box-shadow: 0 2px 4px rgba(0, 102, 161, 0.2);
         }
         .section-title.green {
           background: ${brandGreen};
+          box-shadow: 0 2px 4px rgba(90, 154, 122, 0.2);
         }
         .info-grid {
           display: grid;
@@ -285,8 +294,8 @@ export function generatePDF(data: ReportData) {
         <div class="header-left">
           <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" alt="ControlExpert" />
           <div class="header-title">
-            <h1>LAUDO DE REINSPEÇÃO</h1>
-            <p>Relatório de Auditoria de Sinistros</p>
+            <h1>LAUDO DE MONITORIA</h1>
+            <p>Relatório de Monitoria de Sinistros</p>
           </div>
         </div>
         <div style="text-align: right; font-size: 10px; color: #666;">
@@ -299,6 +308,10 @@ export function generatePDF(data: ReportData) {
         <div class="info-grid">
           <div class="info-box highlight">
             <h4>Informações do Sinistro</h4>
+            <div class="info-item">
+              <span class="info-label">Seguradora:</span>
+              <span class="info-value" style="font-weight: 600;">${data.header.seguradora || "-"}</span>
+            </div>
             <div class="info-item">
               <span class="info-label">Sinistro:</span>
               <span class="info-value">${data.header.sinistro || "-"}</span>
@@ -333,6 +346,10 @@ export function generatePDF(data: ReportData) {
             <div class="info-item">
               <span class="info-label">Placa:</span>
               <span class="info-value">${data.header.placa || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Chassi:</span>
+              <span class="info-value">${data.header.chassi || "-"}</span>
             </div>
           </div>
           <div class="info-box">
@@ -376,7 +393,7 @@ export function generatePDF(data: ReportData) {
         data.pecasGlosadas.length > 0
           ? `
       <div class="section">
-        <div class="section-title">Glosas de Peças</div>
+        <div class="section-title">GLOSAS DE PEÇAS</div>
         <table>
           <thead>
             <tr>
@@ -418,7 +435,7 @@ export function generatePDF(data: ReportData) {
       }
 
       <div class="section">
-        <div class="section-title">Glosas de Mão de Obra</div>
+        <div class="section-title">GLOSAS DE MÃO DE OBRA</div>
         <div class="mo-grid">
           <div class="mo-section deducao">
             <h4>Dedução</h4>
@@ -458,7 +475,7 @@ export function generatePDF(data: ReportData) {
             </p>
           </div>
           <div class="mo-section valorizacao">
-            <h4>Valorização</h4>
+            <h4>Inclusão</h4>
             <table>
               <thead>
                 <tr>
@@ -496,6 +513,28 @@ export function generatePDF(data: ReportData) {
       </div>
 
       ${
+        data.fotos && data.fotos.length > 0
+          ? `
+      <div class="section">
+        <div class="section-title">FOTOS</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          ${data.fotos
+            .map(
+              (foto) => `
+            <div style="border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+              <img src="${foto.url}" alt="${foto.descricao || "Foto do laudo"}" style="width: 100%; height: 120px; object-fit: cover;" />
+              ${foto.descricao ? `<p style="font-size: 9px; color: #666; padding: 6px; margin: 0; border-top: 1px solid #e0e0e0; background: #f9f9f9;">${foto.descricao}</p>` : ""}
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+      `
+          : ""
+      }
+
+      ${
         data.observacao
           ? `
       <div class="section">
@@ -509,7 +548,20 @@ export function generatePDF(data: ReportData) {
       }
 
       <div class="section">
-        <div class="section-title">Resumo</div>
+        <div class="section-title">RESUMO</div>
+        
+        <!-- Valores do Orçamento -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
+          <div style="background: ${lightBlue}; border: 1px solid ${brandBlue}40; border-radius: 6px; padding: 10px; text-align: center;">
+            <p style="font-size: 9px; color: #666; margin-bottom: 5px; text-transform: uppercase;">Valor Inicial Orçamento</p>
+            <p style="font-size: 14px; font-weight: 700; color: ${brandBlue};">${formatCurrency(valorInicialOrcamento)}</p>
+          </div>
+          <div style="background: #fff8f0; border: 1px solid #f59e0b40; border-radius: 6px; padding: 10px; text-align: center;">
+            <p style="font-size: 9px; color: #666; margin-bottom: 5px; text-transform: uppercase;">Franquia</p>
+            <p style="font-size: 14px; font-weight: 700; color: #c2410c;">-${formatCurrency(franquia)}</p>
+          </div>
+        </div>
+        
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px;">
           <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
             <p style="font-size: 10px; color: #666; margin-bottom: 8px; text-transform: uppercase;">Deduções</p>
@@ -527,9 +579,9 @@ export function generatePDF(data: ReportData) {
             </div>
           </div>
           <div style="background: ${lightGreen}; border: 1px solid ${brandGreen}60; border-radius: 6px; padding: 12px;">
-            <p style="font-size: 10px; color: #666; margin-bottom: 8px; text-transform: uppercase;">Valorizações</p>
+            <p style="font-size: 10px; color: #666; margin-bottom: 8px; text-transform: uppercase;">Inclusões</p>
             <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted ${brandGreen}60;">
-              <span style="font-size: 10px; color: #666;">Total M.O. Valorizada</span>
+              <span style="font-size: 10px; color: #666;">Total M.O. Incluída</span>
               <span style="font-size: 11px; font-weight: 600; color: ${brandGreen};">${formatCurrency(totalMOValorizacao + data.servicosTerceiros.valorizacaoTotal)}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted ${brandGreen}60;">
@@ -537,21 +589,31 @@ export function generatePDF(data: ReportData) {
               <span style="font-size: 11px; font-weight: 600; color: ${brandGreen};">${formatCurrency(totalPecasNegociado)}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 8px 0 0 0; margin-top: 4px; border-top: 2px solid ${brandGreen}60;">
-              <span style="font-size: 11px; font-weight: 700; color: ${brandGreen};">Total Valorizações</span>
-              <span style="font-size: 13px; font-weight: 700; color: ${brandGreen};">${formatCurrency(totalValorizacoes)}</span>
+              <span style="font-size: 11px; font-weight: 700; color: ${brandGreen};">Total Inclusões</span>
+              <span style="font-size: 13px; font-weight: 700; color: ${brandGreen};">${formatCurrency(totalInclusoes)}</span>
             </div>
           </div>
         </div>
-        <div style="background: ${saldoFinal >= 0 ? lightGreen : "#fef2f2"}; border: 2px solid ${saldoFinal >= 0 ? brandGreen : "#fecaca"}; border-radius: 8px; padding: 15px; text-align: center;">
-          <p style="font-size: 10px; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Saldo Final</p>
-          <p style="font-size: 24px; font-weight: 700; color: ${saldoFinal >= 0 ? brandGreen : "#dc2626"};">${formatCurrency(saldoFinal)}</p>
+        <div style="background: ${saldoFinal >= 0 ? lightGreen : "#fef2f2"}; border: 2px solid ${saldoFinal >= 0 ? brandGreen : "#fecaca"}; border-radius: 8px; padding: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <span style="font-size: 10px; color: #666;">(-) Total Deduções</span>
+            <span style="font-size: 12px; font-weight: 600; color: #dc2626;">-${formatCurrency(totalDeducoes)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed ${saldoFinal >= 0 ? brandGreen + '60' : '#fecaca'};">
+            <span style="font-size: 10px; color: #666;">(+) Total Inclusões</span>
+            <span style="font-size: 12px; font-weight: 600; color: ${brandGreen};">+${formatCurrency(totalInclusoes)}</span>
+          </div>
+          <div style="background: ${brandBlue}; border-radius: 6px; padding: 15px; margin-top: 10px;">
+            <p style="font-size: 12px; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; text-align: center;">TOTAL FINAL</p>
+            <p style="font-size: 32px; font-weight: 700; color: #fff; text-align: center;">${formatCurrency(saldoFinal)}</p>
+          </div>
         </div>
       </div>
 
       <div class="page-footer">
         <div>
           <p>Documento gerado em ${new Date().toLocaleString("pt-BR")}</p>
-          <p>ControlExpert - Sistema de Auditoria de Sinistros</p>
+          <p>ControlExpert - Sistema de Monitoria de Sinistros</p>
         </div>
         <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ControlExpert_a_solvd_group_company_left%20%283%29-wC5qwyBGMnRbrukfXswRCWNGb6TI62.png" alt="ControlExpert" />
       </div>
@@ -559,13 +621,43 @@ export function generatePDF(data: ReportData) {
     </html>
   `
 
-  // Abrir nova janela e imprimir
-  const printWindow = window.open("", "_blank")
-  if (printWindow) {
-    printWindow.document.write(html)
-    printWindow.document.close()
-    printWindow.onload = () => {
-      printWindow.print()
-    }
+  // Gerar nome do arquivo com a placa
+  const placa = data.header.placa?.replace(/[^a-zA-Z0-9]/g, "") || "sem-placa"
+  const fileName = `Laudo_${placa}`
+
+  // Criar um iframe oculto para a impressão
+  const iframe = document.createElement("iframe")
+  iframe.style.position = "fixed"
+  iframe.style.right = "0"
+  iframe.style.bottom = "0"
+  iframe.style.width = "0"
+  iframe.style.height = "0"
+  iframe.style.border = "none"
+  document.body.appendChild(iframe)
+
+  const iframeDoc = iframe.contentWindow?.document
+  if (!iframeDoc) {
+    document.body.removeChild(iframe)
+    return
+  }
+
+  iframeDoc.open()
+  iframeDoc.write(html)
+  iframeDoc.close()
+
+  // Configurar título do documento para o nome do arquivo
+  iframeDoc.title = fileName
+
+  // Aguardar carregamento completo
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      
+      // Remover iframe após impressão
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 1000)
+    }, 500)
   }
 }

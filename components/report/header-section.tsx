@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ReportHeader } from "@/lib/report-data"
-import { AGENTES_CAUSA, MOTIVOS, TIPOS_CLIENTE, TIPOS_OFICINA, CREDENCIAMENTOS } from "@/lib/report-data"
+import { AGENTES_CAUSA, MOTIVOS, TIPOS_CLIENTE, TIPOS_OFICINA, CREDENCIAMENTOS, SEGURADORAS } from "@/lib/report-data"
 import { FileText, Car, Building2, AlertCircle } from "lucide-react"
 
 interface HeaderSectionProps {
@@ -40,6 +40,24 @@ export function HeaderSection({ data, onChange }: HeaderSectionProps) {
           </CardHeader>
           <CardContent>
             <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="seguradora">Seguradora</FieldLabel>
+                <Select
+                  value={data.seguradora}
+                  onValueChange={(value) => handleChange("seguradora", value)}
+                >
+                  <SelectTrigger id="seguradora">
+                    <SelectValue placeholder="Selecione a seguradora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEGURADORAS.map((seg) => (
+                      <SelectItem key={seg} value={seg}>
+                        {seg}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
               <Field>
                 <FieldLabel htmlFor="sinistro">Sinistro</FieldLabel>
                 <Input
@@ -137,15 +155,26 @@ export function HeaderSection({ data, onChange }: HeaderSectionProps) {
                   placeholder="Modelo do veículo"
                 />
               </Field>
-              <Field>
-                <FieldLabel htmlFor="placa">Placa</FieldLabel>
-                <Input
-                  id="placa"
-                  value={data.placa}
-                  onChange={(e) => handleChange("placa", e.target.value)}
-                  placeholder="ABC-1234"
-                />
-              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="placa">Placa</FieldLabel>
+                  <Input
+                    id="placa"
+                    value={data.placa}
+                    onChange={(e) => handleChange("placa", e.target.value)}
+                    placeholder="ABC-1234"
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="chassi">Chassi</FieldLabel>
+                  <Input
+                    id="chassi"
+                    value={data.chassi}
+                    onChange={(e) => handleChange("chassi", e.target.value)}
+                    placeholder="Chassi do veículo"
+                  />
+                </Field>
+              </div>
             </FieldGroup>
           </CardContent>
         </Card>

@@ -1,4 +1,5 @@
 export interface ReportHeader {
+  seguradora: string
   sinistro: string
   tipoCliente: string
   regulador: string
@@ -17,6 +18,12 @@ export interface ReportHeader {
   agenteCausa: string
   motivo: string
 }
+
+export const SEGURADORAS = [
+  "ALLIANZ SEGUROS",
+  "MAPFRE SEGUROS", 
+  "PIER SEGUROS",
+] as const
 
 export const TIPOS_CLIENTE = ["Segurado", "Terceiro"] as const
 
@@ -54,12 +61,21 @@ export interface ServicosTerceiros {
   deducaoTotal: number
 }
 
+export interface Foto {
+  id: string
+  url: string
+  descricao: string
+}
+
 export interface ReportData {
   header: ReportHeader
   pecasGlosadas: PecaGlosada[]
   maoDeObra: MaoDeObraGlosa
   servicosTerceiros: ServicosTerceiros
+  fotos: Foto[]
   observacao: string
+  valorInicialOrcamento: number
+  franquia: number
 }
 
 export const AGENTES_CAUSA = [
@@ -100,6 +116,7 @@ export const MOTIVOS = [
 
 export const emptyReportData: ReportData = {
   header: {
+    seguradora: "",
     sinistro: "",
     tipoCliente: "",
     regulador: "",
@@ -108,6 +125,7 @@ export const emptyReportData: ReportData = {
     marca: "",
     modelo: "",
     placa: "",
+    chassi: "",
     oficina: "",
     tipoOficina: "",
     credenciamento: "",
@@ -134,5 +152,8 @@ export const emptyReportData: ReportData = {
     valorizacaoTotal: 0,
     deducaoTotal: 0,
   },
+  fotos: [],
   observacao: "",
+  valorInicialOrcamento: 0,
+  franquia: 0,
 }
