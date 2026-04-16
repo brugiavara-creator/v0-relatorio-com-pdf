@@ -198,6 +198,7 @@ function MetricCard({
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filters, setFilters] = useState<Filters>({
     seguradora: "",
@@ -216,6 +217,7 @@ export default function DashboardPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([key, value]) => {
@@ -223,9 +225,14 @@ export default function DashboardPage() {
       })
       const response = await fetch(`/api/dashboard?${params.toString()}`)
       const result = await response.json()
+      if (!response.ok) {
+        setError(result.error || "Erro ao carregar dados do servidor")
+        return
+      }
       setData(result)
     } catch (err) {
       console.error("Erro ao carregar dados:", err)
+      setError("Erro de conexao com o servidor. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -318,6 +325,20 @@ export default function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Erro */}
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-3">
+            <X className="h-4 w-4 shrink-0 text-red-500" />
+            <div>
+              <p className="font-medium">Erro ao carregar o dashboard</p>
+              <p className="text-xs mt-0.5 text-red-600">{error}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={fetchData} className="ml-auto text-red-600 hover:bg-red-100 h-7 text-xs">
+              <RefreshCw className="h-3 w-3 mr-1" />Tentar novamente
+            </Button>
+          </div>
+        )}
+
         {/* Filtros Compactos */}
         <Card className="border-dashed bg-card/50">
           <CardContent className="p-4">
