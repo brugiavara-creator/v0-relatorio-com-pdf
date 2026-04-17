@@ -198,6 +198,7 @@ function MetricCard({
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filters, setFilters] = useState<Filters>({
     seguradora: "",
@@ -216,6 +217,7 @@ export default function DashboardPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([key, value]) => {
@@ -223,9 +225,14 @@ export default function DashboardPage() {
       })
       const response = await fetch(`/api/dashboard?${params.toString()}`)
       const result = await response.json()
+      if (!response.ok) {
+        setError(result.error || "Erro ao carregar dados do servidor")
+        return
+      }
       setData(result)
     } catch (err) {
       console.error("Erro ao carregar dados:", err)
+      setError("Erro de conexao com o servidor. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -318,6 +325,20 @@ export default function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Erro */}
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-3">
+            <X className="h-4 w-4 shrink-0 text-red-500" />
+            <div>
+              <p className="font-medium">Erro ao carregar o dashboard</p>
+              <p className="text-xs mt-0.5 text-red-600">{error}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={fetchData} className="ml-auto text-red-600 hover:bg-red-100 h-7 text-xs">
+              <RefreshCw className="h-3 w-3 mr-1" />Tentar novamente
+            </Button>
+          </div>
+        )}
+
         {/* Filtros Compactos */}
         <Card className="border-dashed bg-card/50">
           <CardContent className="p-4">
@@ -334,46 +355,46 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
-              <Select value={filters.seguradora} onValueChange={(v) => setFilters(f => ({ ...f, seguradora: v }))}>
+              <Select value={filters.seguradora || "all"} onValueChange={(v) => setFilters(f => ({ ...f, seguradora: v === "all" ? "" : v }))}>
                 <SelectTrigger className="h-8 text-xs"><Building2 className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Seguradora" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
-                  {(data?.filtros?.seguradoras || []).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <SelectItem value="all">Todas</SelectItem>
+                  {(data?.filtros?.seguradoras || []).filter(s => s).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filters.ano} onValueChange={(v) => setFilters(f => ({ ...f, ano: v }))}>
+              <Select value={filters.ano || "all"} onValueChange={(v) => setFilters(f => ({ ...f, ano: v === "all" ? "" : v }))}>
                 <SelectTrigger className="h-8 text-xs"><Calendar className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Ano" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {(data?.filtros?.anos || []).map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(data?.filtros?.anos || []).filter(a => a).map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filters.mes} onValueChange={(v) => setFilters(f => ({ ...f, mes: v }))}>
+              <Select value={filters.mes || "all"} onValueChange={(v) => setFilters(f => ({ ...f, mes: v === "all" ? "" : v }))}>
                 <SelectTrigger className="h-8 text-xs"><Calendar className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Mes" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {(data?.filtros?.meses || []).map(m => <SelectItem key={m} value={String(m)}>{MESES_NOMES[m]}</SelectItem>)}
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(data?.filtros?.meses || []).filter(m => m).map(m => <SelectItem key={m} value={String(m)}>{MESES_NOMES[m]}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filters.uf} onValueChange={(v) => setFilters(f => ({ ...f, uf: v }))}>
+              <Select value={filters.uf || "all"} onValueChange={(v) => setFilters(f => ({ ...f, uf: v === "all" ? "" : v }))}>
                 <SelectTrigger className="h-8 text-xs"><MapPin className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="UF" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {(data?.filtros?.ufs || []).map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(data?.filtros?.ufs || []).filter(u => u).map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filters.agente_causa} onValueChange={(v) => setFilters(f => ({ ...f, agente_causa: v }))}>
+              <Select value={filters.agente_causa || "all"} onValueChange={(v) => setFilters(f => ({ ...f, agente_causa: v === "all" ? "" : v }))}>
                 <SelectTrigger className="h-8 text-xs"><Users className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Agente" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {(data?.filtros?.agentesCausa || []).map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(data?.filtros?.agentesCausa || []).filter(a => a).map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filters.tipo_oficina} onValueChange={(v) => setFilters(f => ({ ...f, tipo_oficina: v }))}>
+              <Select value={filters.tipo_oficina || "all"} onValueChange={(v) => setFilters(f => ({ ...f, tipo_oficina: v === "all" ? "" : v }))}>
                 <SelectTrigger className="h-8 text-xs"><Car className="h-3 w-3 mr-1 text-muted-foreground" /><SelectValue placeholder="Oficina" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {(data?.filtros?.tiposOficina || []).map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(data?.filtros?.tiposOficina || []).filter(t => t).map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

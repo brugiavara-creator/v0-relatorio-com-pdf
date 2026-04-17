@@ -36,7 +36,10 @@ export async function GET(request: NextRequest) {
 
     const { data: laudos, error: laudosError } = await query
 
-    if (laudosError) throw laudosError
+    if (laudosError) {
+      console.error("[v0] Erro Supabase ao buscar laudos:", laudosError)
+      throw new Error(`Supabase: ${laudosError.message} (code: ${laudosError.code})`)
+    }
 
     // Calcular métricas
     const totalLaudos = laudos?.length || 0
@@ -235,9 +238,10 @@ export async function GET(request: NextRequest) {
       filtros: filtrosUnicos,
     })
   } catch (error) {
-    console.error("Erro ao buscar dados do dashboard:", error)
+    const msg = error instanceof Error ? error.message : "Erro desconhecido"
+    console.error("[v0] Erro ao buscar dados do dashboard:", msg)
     return NextResponse.json(
-      { error: "Erro ao buscar dados do dashboard" },
+      { error: msg },
       { status: 500 }
     )
   }
